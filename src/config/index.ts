@@ -10,5 +10,5 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || "default_secret",
   jwtExpiration: process.env.JWT_EXPIRATION || "100d",
   bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS) || 10,
-  clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
+  // clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
 };
