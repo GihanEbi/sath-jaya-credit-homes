@@ -11,6 +11,7 @@ interface PropsType {
   icon?: React.ReactNode;
   defaultValue?: string;
   handleChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  value?: string;
 }
 
 export function TextAreaGroup({
@@ -23,6 +24,7 @@ export function TextAreaGroup({
   icon,
   defaultValue,
   handleChange,
+  value
 }: PropsType) {
   const id = useId();
 
@@ -48,6 +50,7 @@ export function TextAreaGroup({
           required={required}
           disabled={disabled}
           data-active={active}
+          value={value}
           onChange={handleChange}
         />
 

@@ -4,14 +4,24 @@ import User from "../../../../../models/User";
 import bcrypt from "bcrypt";
 import { hashPassword } from "@/utils/hashUtils";
 import { config } from "@/config";
+import { createId } from "@/services/id_generator/id-generator-service";
+import { id_codes } from "@/constants/id_code_constants";
 
 export async function POST(req: Request) {
-  const { firstName, lastName, birthday, email, phoneNo, address } =
-    await req.json();
+  const {
+    firstName,
+    lastName,
+    birthday,
+    email,
+    phoneNo,
+    address,
+    userGroupId,
+  } = await req.json();
+
+//   --------- connect to database -----------
   await connectDB();
 
-  // console.log(hashedPassword);
-  // Check if user already exists
+  // ------------ Check if user already exists -----------
   const existingUser = await User.find({
     $or: [{ email }, { phoneNo }],
   });
@@ -22,7 +32,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // random password generator
+  // ----------- random password generator -----------
   let result = "";
   const length = 2;
   const capitalLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -30,7 +40,6 @@ export async function POST(req: Request) {
   const numbers = "0123456789";
   const specialCharacters = "$%@";
 
-  //var charactersLength = characters.length;
   for (let i = 0; i < length; i++) {
     result += capitalLetters.charAt(
       Math.floor(Math.random() * capitalLetters.length),
@@ -44,12 +53,22 @@ export async function POST(req: Request) {
     );
   }
 
+  // ----------- create created user details -----------
+  let createdUser;
+  const date = new Date(Date() + "UTC");
+  // let userCreated = userID;
+  let dateCreated = date;
+
   try {
+    // --------- unique ID generator ---------
+    let userId = await createId(id_codes.idCode.user);
+    // --------- generate random password ---------
     const generatedPassword = result;
     const hashedPassword = await hashPassword(generatedPassword);
 
-    const user = new User({
-      ID: "US00003",
+    // --------- create user object ---------
+     createdUser = new User({
+      ID: userId,
       firstName,
       lastName,
       birthday,
@@ -58,8 +77,10 @@ export async function POST(req: Request) {
       address,
       password: hashedPassword,
       isActive: true,
+      userGroupId,
+      dateCreated
     });
-    await user.save();
+    await createdUser.save();
 
     // try {
     //   const msg = {
@@ -109,7 +130,7 @@ export async function POST(req: Request) {
     //   );
     // }
 
-    return NextResponse.json({ user }, { status: 201 });
+    return NextResponse.json({ createdUser }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: "Error adding user" }, { status: 500 });
   }

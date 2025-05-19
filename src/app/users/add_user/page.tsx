@@ -1,29 +1,16 @@
 "use client";
 
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
-import DatePickerOne from "@/components/FormElements/DatePicker/DatePickerOne";
-import DatePickerTwo from "@/components/FormElements/DatePicker/DatePickerTwo";
+import Link from "next/link";
+
+// -------------components-----------------
 import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
-import { Switch } from "@/components/FormElements/switch";
 import { ShowcaseSection } from "@/components/Layouts/showcase-section";
-import Link from "next/link";
-import React, { useState } from "react";
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
 
+// -------------types-----------------
 type variant = "default" | "destructive";
 type Alert = {
   open: boolean;
@@ -35,6 +22,7 @@ type Alert = {
 const AddUser = () => {
   const router = useRouter();
 
+// --------- form for user details ----------
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -43,6 +31,7 @@ const AddUser = () => {
     phoneNo: "",
     address: "",
   });
+// --------- alert for success and error messages ---------
   const [alert, setAlert] = useState<Alert>({
     open: false,
     message: "",
@@ -50,12 +39,12 @@ const AddUser = () => {
     variant: "default",
   });
 
+  // -------- handleChange for input fields ---------
   const handleChange = (value: string, name: string) => {
-    console.log(value);
-
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  // -------- handleSubmit for form submission ---------
   const handleSubmit = async () => {
     const res = await fetch("/api/users/add-user", {
       method: "POST",

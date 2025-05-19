@@ -10,6 +10,13 @@ export interface IUser extends Document {
   address: string;
   password: string;
   isActive?: boolean;
+  userGroupId: string;
+
+  //   created user details
+  userCreated?: string;
+  userModified?: string;
+  dateCreated?: Date;
+  dateModified?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -23,8 +30,15 @@ const userSchema = new Schema<IUser>(
     address: { type: String, required: true },
     password: { type: String, required: true },
     isActive: { type: Boolean, default: true },
+    userGroupId: { type: String, required: true },
+
+    //   created user details
+    userCreated: { type: String, required: false },
+    userModified: { type: String, required: false },
+    dateCreated: { type: Date, required: false },
+    dateModified: { type: Date, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-export default mongoose.models.User || mongoose.model('User', userSchema);
+export default mongoose.models.User || mongoose.model("User", userSchema);
