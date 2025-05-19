@@ -4,6 +4,8 @@ import "@/css/style.css";
 import { Sidebar } from "@/components/Layouts/sidebar";
 
 import "flatpickr/dist/flatpickr.min.css";
+// import "flatpickr/dist/themes/material_blue.css"; // or any theme
+
 import "jsvectormap/dist/jsvectormap.css";
 
 import { Header } from "@/components/Layouts/header";

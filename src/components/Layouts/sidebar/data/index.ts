@@ -11,7 +11,43 @@ export const NAV_DATA = [
         items: [],
       },
       {
-        title: "Users",
+        title: "Credit Users",
+        icon: Icons.Alphabet,
+        items: [
+          {
+            title: "All Users",
+            url: "/credit_users/all_users",
+          },
+          {
+            title: "All User Groups",
+            url: "/credit_users/all_user_groups",
+          },
+        ],
+      },
+      {
+        title: "Loan Details",
+        icon: Icons.FourCircle,
+        items: [
+          {
+            title: "New Loan",
+            url: "/loan_details/new_loan",
+          },
+          {
+            title: "All Loans",
+            url: "/loan_details/all_loans",
+          },
+          {
+            title: "Pending Loans",
+            url: "/loan_details/pending_loans",
+          },
+          {
+            title: "Ongoing Loans",
+            url: "/loan_details/ongoing_loans",
+          },
+        ],
+      },
+      {
+        title: "Admin Users",
         icon: Icons.User,
         items: [
           {
