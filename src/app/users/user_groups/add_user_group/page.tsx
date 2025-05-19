@@ -41,7 +41,7 @@ const AddUserGroup = () => {
     description: "",
     variant: "default",
   });
-  // --------- status for loading spinner ---------
+  // --------- state for loading spinner ---------
   const [loading, setLoading] = useState(false);
 
   // -------- handleChange for input fields ---------
@@ -91,6 +91,7 @@ const AddUserGroup = () => {
     const data = await res.json();
 
     if (data.createdUserGroup) {
+      // ---------- reset form values ---------
       setForm({
         groupName: "",
         description: "",
@@ -101,6 +102,8 @@ const AddUserGroup = () => {
         description: "User group added successfully",
         variant: "default",
       });
+      // ---------- redirect to user groups page ---------
+      router.push("/users/user_groups");
     } else {
       setAlert({
         open: true,

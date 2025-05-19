@@ -1,6 +1,9 @@
 "use client";
 
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
+
+// -------------components-----------------
 import { TrashIcon } from "@/assets/icons";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import {
@@ -11,33 +14,113 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { Loader } from "@/components/Loader/Loader";
 
-const tempData = [
-  {
-    name: "User Group 1",
-    description:
-      "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Officia ut nobis odit nostrum temporibus quo odio optio dolor ducimus explicabo. Quod velit delectus sed repellat ea fuga quae facere veritatis?",
-    status: "Active",
-  },
-  {
-    name: "User Group 2",
-    description:
-      "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Officia ut nobis odit nostrum temporibus quo odio optio dolor ducimus explicabo. Quod velit delectus sed repellat ea fuga quae facere veritatis?",
-    status: "Active",
-  },
-  {
-    name: "User Group 3",
-    description:
-      "Lorem ipsum dolor sit amet consectetur, adipisicing elit. Officia ut nobis odit nostrum temporibus quo odio optio dolor ducimus explicabo. Quod velit delectus sed repellat ea fuga quae facere veritatis?",
-    status: "Deactivated",
-  },
-];
+// -------------services-----------------
+import { cn } from "@/lib/utils";
+import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
+
+// -------------types-----------------
+type variant = "default" | "destructive";
+type Alert = {
+  open: boolean;
+  message: string;
+  description: string;
+  variant: variant;
+};
+
+// --------- user group data types ---------
+interface userGroupObj {
+  Id: string;
+  groupName: string;
+  description: string;
+  isActive: boolean;
+}
 
 const UserGroups = () => {
   const router = useRouter();
+  // --------- alert for success and error messages ---------
+  const [alert, setAlert] = React.useState<Alert>({
+    open: false,
+    message: "",
+    description: "",
+    variant: "default",
+  });
+  // --------- state for loading spinner ---------
+  const [loading, setLoading] = React.useState(false);
+  // --------- state for search value ---------
+  const [searchValue, setSearchValue] = React.useState("");
+  // --------- state for pagination ---------
+  const [pageNo, setPageNo] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [noOfPages, setNoOfPages] = React.useState(0);
+  const [noOfRecords, setNoOfRecords] = React.useState(0);
+  // ---------- state for store backend data -----------
+  const [tableData, setTableData] = React.useState<userGroupObj[]>([]);
+
+  // --------- first render to get user groups data ---------
+  useEffect(() => {
+    fetchUserGroups(pageNo, pageSize, searchValue);
+  }, []);
+
+  // --------- function to get user groups data ---------
+  const fetchUserGroups = async (
+    pageNo: number,
+    pageSize: number,
+    searchValue: string,
+  ) => {
+    setLoading(true);
+    const queryParams = new URLSearchParams({
+      pageNo: pageNo.toString(),
+      pageSize: pageSize.toString(),
+    });
+    try {
+      const response = await fetch(
+        `/api/users/user-groups/get-user-group?${queryParams.toString()}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            searchValue: searchValue,
+          }),
+        },
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        console.log(data);
+        setTableData(data.response.details);
+        setNoOfPages(data.response.noOfPages);
+        setNoOfRecords(data.response.noOfRecords);
+      } else {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setAlert({
+        open: true,
+        message: "Error",
+        description: "Error fetching user groups data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
+      {loading && (
+        <div className="flex h-screen items-center justify-center">
+          <Loader size={40} className="text-blue-500" />
+        </div>
+      )}
       <Breadcrumb pageName="User Groups" />
       <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
         <div className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
@@ -61,14 +144,14 @@ const UserGroups = () => {
           </TableHeader>
 
           <TableBody>
-            {tempData.map((item, index) => (
+            {tableData.map((item, index) => (
               <TableRow
                 key={index}
                 className="border-[#eee] dark:border-dark-3"
               >
                 <TableCell>
                   <p className="mt-[3px] text-body-sm font-medium">
-                    {item.name}
+                    {item.groupName}
                   </p>
                 </TableCell>
                 <TableCell className="min-w-[155px] xl:pl-7.5">
@@ -82,16 +165,14 @@ const UserGroups = () => {
                     className={cn(
                       "max-w-fit rounded-full px-3.5 py-1 text-sm font-medium",
                       {
-                        "bg-[#219653]/[0.08] text-[#219653]":
-                          item.status === "Active",
-                        "bg-[#D34053]/[0.08] text-[#D34053]":
-                          item.status === "Deactivated",
+                        "bg-[#219653]/[0.08] text-[#219653]": item.isActive,
+                        "bg-[#D34053]/[0.08] text-[#D34053]": !item.isActive,
                         //   "bg-[#FFA70B]/[0.08] text-[#FFA70B]":
                         //     item.status === "Pending",
                       },
                     )}
                   >
-                    {item.status}
+                    {item.isActive ? "Active" : "Inactive"}
                   </div>
                 </TableCell>
 
@@ -107,6 +188,16 @@ const UserGroups = () => {
             ))}
           </TableBody>
         </Table>
+        <div className="flex items-center justify-between border-t border-stroke py-4 dark:border-dark-3">
+          <PaginationComponent
+            currentPage={pageNo}
+            totalPages={noOfPages}
+            onPageChange={(currentPage) => {
+              setPageNo(currentPage)
+              fetchUserGroups(currentPage, pageSize, searchValue);
+            }}
+          />
+        </div>
       </div>
     </>
   );
