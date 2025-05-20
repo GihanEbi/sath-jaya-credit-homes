@@ -9,6 +9,10 @@ type PropsType = {
   items: { value: string; label: string }[];
   prefixIcon?: React.ReactNode;
   className?: string;
+  handleChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  value?: string;
+  error?: string;
+  required?: boolean;
 } & (
   | { placeholder?: string; defaultValue: string }
   | { placeholder: string; defaultValue?: string }
@@ -21,6 +25,10 @@ export function Select({
   placeholder,
   prefixIcon,
   className,
+  handleChange,
+  error,
+  required,
+  value
 }: PropsType) {
   const id = useId();
 
@@ -33,6 +41,7 @@ export function Select({
         className="block text-body-sm font-medium text-dark dark:text-white"
       >
         {label}
+        {required && <span className="ml-1 select-none text-red">*</span>}
       </label>
 
       <div className="relative">
@@ -45,12 +54,17 @@ export function Select({
         <select
           id={id}
           defaultValue={defaultValue || ""}
-          onChange={() => setIsOptionSelected(true)}
+          onChange={(e) => {
+            setIsOptionSelected(true);
+            handleChange(e);
+          }}
+          value={value}
           className={cn(
             "w-full appearance-none rounded-lg border border-stroke bg-transparent px-5.5 py-3 outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:border-primary [&>option]:text-dark-5 dark:[&>option]:text-dark-6",
             isOptionSelected && "text-dark dark:text-white",
             prefixIcon && "pl-11.5",
           )}
+          required={required}
         >
           {placeholder && (
             <option value="" disabled hidden>
@@ -66,6 +80,9 @@ export function Select({
         </select>
 
         <ChevronUpIcon className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 rotate-180" />
+      </div>
+      <div className="mt-1">
+        {error && <h2 className="text-red text-sm">{error}</h2>}
       </div>
     </div>
   );

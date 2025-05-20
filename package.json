@@ -13,6 +13,7 @@
     "@radix-ui/react-dialog": "^1.1.13",
     "@radix-ui/react-popover": "^1.1.13",
     "@radix-ui/react-slot": "^1.2.2",
+    "@sendgrid/mail": "^8.1.5",
     "apexcharts": "^4.5.0",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",

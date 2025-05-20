@@ -77,6 +77,7 @@ const NewLoan = () => {
                     { label: "Suranga Kalum", value: "DiVORCED" },
                   ]}
                   defaultValue="SINGLE"
+                  handleChange={(e)=>{}}
                 />
                 <InputGroup
                   label="Name of main income person of the family"
@@ -103,6 +104,7 @@ const NewLoan = () => {
                     { label: "No", value: "NO" },
                   ]}
                   defaultValue="NO"
+                  handleChange={(e)=>{}}
                 />
                 <InputGroup
                   label="Loan Amount"
@@ -188,6 +190,7 @@ const NewLoan = () => {
                     { label: "No", value: "NO" },
                   ]}
                   defaultValue="NO"
+                  handleChange={(e)=>{}}
                 />
               </div>
               <div className="flex flex-col gap-9">
@@ -220,6 +223,7 @@ const NewLoan = () => {
                     { label: "Suranga Kalum", value: "DiVORCED" },
                   ]}
                   defaultValue="SINGLE"
+                  handleChange={(e)=>{}}
                 />
                 <Select
                   label="Guarantor 3 Name"
@@ -229,6 +233,7 @@ const NewLoan = () => {
                     { label: "Suranga Kalum", value: "DiVORCED" },
                   ]}
                   defaultValue="SINGLE"
+                  handleChange={(e)=>{}}
                 />
               </div>
               <div className="flex flex-col gap-9">
@@ -240,6 +245,7 @@ const NewLoan = () => {
                     { label: "Suranga Kalum", value: "DiVORCED" },
                   ]}
                   defaultValue="SINGLE"
+                  handleChange={(e)=>{}}
                 />
               </div>
             </div>

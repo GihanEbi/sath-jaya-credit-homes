@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../../../lib/db";
-import User from "../../../../../models/User";
+import UserModel from "../../../../../models/UserModel";
 import bcrypt from "bcrypt";
 import { hashPassword } from "@/utils/hashUtils";
 import { config } from "@/config";
 import { createId } from "@/services/id_generator/id-generator-service";
 import { id_codes } from "@/constants/id_code_constants";
+import sgMail from "@sendgrid/mail";
+
+sgMail.setApiKey(config.emailConfig.apiKey);
 
 export async function POST(req: Request) {
   const {
@@ -18,11 +21,11 @@ export async function POST(req: Request) {
     userGroupId,
   } = await req.json();
 
-//   --------- connect to database -----------
+  //   --------- connect to database -----------
   await connectDB();
 
   // ------------ Check if user already exists -----------
-  const existingUser = await User.find({
+  const existingUser = await UserModel.find({
     $or: [{ email }, { phoneNo }],
   });
   if (existingUser.length > 0) {
@@ -55,9 +58,7 @@ export async function POST(req: Request) {
 
   // ----------- create created user details -----------
   let createdUser;
-  const date = new Date(Date() + "UTC");
   // let userCreated = userID;
-  let dateCreated = date;
 
   try {
     // --------- unique ID generator ---------
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hashPassword(generatedPassword);
 
     // --------- create user object ---------
-     createdUser = new User({
+    createdUser = new UserModel({
       ID: userId,
       firstName,
       lastName,
@@ -78,57 +79,69 @@ export async function POST(req: Request) {
       password: hashedPassword,
       isActive: true,
       userGroupId,
-      dateCreated
     });
+
     await createdUser.save();
 
-    // try {
-    //   const msg = {
-    //     to: email,
-    //     from: config.emailConfig.email_sender_domain_email,
-    //     subject: "Welcome to Bid Management – Your Account Credentials",
-    //     text: `Hello ${firstName},
+    const loginUrl = `${config.clientUrl}/login`;
 
-    //   Welcome to Bid Management!
+    try {
+      const msg = {
+        to: email,
+        from: config.emailConfig.email_sender_domain_email,
+        subject: "Welcome to Sath Jaya Credit Homes – Your Account Credentials",
+        text: `Hello ${firstName},
 
-    //   Your account has been successfully created. Below are your login credentials:
+      Welcome to Sath Jaya Credit Homes!
 
-    //   Email: ${email}
-    //   Password: ${generatedPassword}
+      Your account has been successfully created. Below are your login credentials:
 
-    //   For security reasons, please change your password after logging in for the first time.
+      Email: ${email}
+      Password: ${generatedPassword}
 
-    //   If you have any questions or need assistance, feel free to reach out.
+      For security reasons, please change your password after logging in for the first time.
 
-    //   Best regards,
-    //   Bid Management Team`,
+      If you have any questions or need assistance, feel free to reach out.
 
-    //     html: `
-    //     <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
-    //       <div style="max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); margin: auto;">
-    //         <h2 style="color: #007bff; text-align: center;">Welcome to Bid Management!</h2>
-    //         <p>Hello <strong>${firstName}</strong>,</p>
-    //         <p>Your account has been successfully created. Below are your login credentials:</p>
-    //         <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; font-size: 16px;">
-    //           <p><strong>Email:</strong> ${email}</p>
-    //           <p><strong>Password:</strong> ${generatedPassword}</p>
-    //         </div>
-    //         <p style="color: red;"><strong>Important:</strong> Please change your password after logging in for the first time.</p>
-    //         <p>If you have any questions or need assistance, feel free to reach out.</p>
-    //         <hr style="border: none; border-top: 1px solid #ddd;">
-    //         <p style="text-align: center; font-size: 14px; color: #777;">Best regards,<br><strong>Bid Management Team</strong></p>
-    //       </div>
-    //     </div>
-    //     `,
-    //   };
+      Best regards,
+      Sath Jaya Credit Homes Team`,
 
-    //   //   await sgMail.send(msg);
-    // } catch (error) {
-    //   return NextResponse.json(
-    //     { error: "user added successfully but mail not sent" },
-    //     { status: 500 },
-    //   );
-    // }
+        html: `
+        <div style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px; border-radius: 8px;">
+          <div style="max-width: 600px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); margin: auto;">
+            <h2 style="color: #007bff; text-align: center;">Welcome to Sath Jaya Credit Homes!</h2>
+            <p>Hello <strong>${firstName}</strong>,</p>
+            <p>Your account has been successfully created. Below are your login credentials:</p>
+            <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; font-size: 16px;">
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>Password:</strong> ${generatedPassword}</p>
+            </div>
+            <a href="${loginUrl}" style="
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+          ">Login</a>
+            <p style="color: red;"><strong>Important:</strong> Please change your password after logging in for the first time.</p>
+            <p>If you have any questions or need assistance, feel free to reach out.</p>
+            <hr style="border: none; border-top: 1px solid #ddd;">
+            <p style="text-align: center; font-size: 14px; color: #777;">Best regards,<br><strong>Sath Jaya Credit Homes Team</strong></p>
+          </div>
+        </div>
+        `,
+      };
+
+      await sgMail.send(msg);
+    } catch (error) {
+      console.log(error);
+
+      return NextResponse.json(
+        { error: "user added successfully but mail not sent" },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json({ createdUser }, { status: 201 });
   } catch (error) {

@@ -1,6 +1,6 @@
 // -------------services-----------------
-import { connectDB } from "../../../../../../lib/db";
-import UserGroupModel from "../../../../../../models/UserGroupModel";
+import { connectDB } from "../../../../../lib/db";
+import UserModel from "../../../../../models/UserModel";
 
 export async function POST(req: Request) {
   // --------- search value ----------
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const userGroups = await UserGroupModel.aggregate([
+    const users = await UserModel.aggregate([
       // -------- search value ------
       {
         $match: {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       },
     ]);
 
-    if (!userGroups) {
+    if (!users) {
       return Response.json(
         {
           success: false,
@@ -66,24 +66,23 @@ export async function POST(req: Request) {
         { status: 404 },
       );
     }
+
     //  --------- return when pagination values are provided ---------
     if (pageNo && pageSize) {
       let response = {
-        details: userGroups[0].data,
+        details: users[0].data,
         noOfPages: Math.ceil(
-          userGroups[0].metadata.length !== 0
-            ? userGroups[0].metadata[0].total / pageSize
+          users[0].metadata.length !== 0
+            ? users[0].metadata[0].total / pageSize
             : 0,
         ),
         noOfRecords:
-          userGroups[0].metadata.length !== 0
-            ? userGroups[0].metadata[0].total
-            : 0,
+          users[0].metadata.length !== 0 ? users[0].metadata[0].total : 0,
       };
       return Response.json(
         {
           success: true,
-          message: "User groups data",
+          message: "Users data",
           response,
         },
         { status: 200 },
@@ -91,13 +90,13 @@ export async function POST(req: Request) {
     } else {
       //  --------- return when pagination values are not provided ---------
       return Response.json(
-        { success: true, message: "User groups data", Details: userGroups },
+        { success: true, message: "Users data", Details: users },
         { status: 200 },
       );
     }
   } catch (error) {
     return Response.json(
-      { success: false, message: "Error getting user groups data" },
+      { success: false, message: "Error getting users data" },
       { status: 400 },
     );
   }

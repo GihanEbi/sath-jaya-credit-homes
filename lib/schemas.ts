@@ -24,7 +24,7 @@ export const UserSchema = Joi.object({
     )
     .label("Phone Number"),
   address: Joi.string().required().label("Address"),
-  userGroupId: Joi.string().required().label("User Group ID"),
+  userGroupId: Joi.string().required().label("User Group"),
 });
 
 // Schema for a user group registration form

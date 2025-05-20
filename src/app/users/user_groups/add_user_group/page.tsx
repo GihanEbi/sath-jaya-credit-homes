@@ -84,35 +84,46 @@ const AddUserGroup = () => {
     // -------- prevent multiple submission
     if (loading) return;
     setLoading(true);
-    const res = await fetch("/api/users/user-groups/add-user-group", {
-      method: "POST",
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/users/user-groups/add-user-group", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
 
-    if (data.createdUserGroup) {
-      // ---------- reset form values ---------
-      setForm({
-        groupName: "",
-        description: "",
-      });
-      setAlert({
-        open: true,
-        message: "Success",
-        description: "User group added successfully",
-        variant: "default",
-      });
-      // ---------- redirect to user groups page ---------
-      router.push("/users/user_groups");
-    } else {
+      if (data.createdUserGroup) {
+        // ---------- reset form values ---------
+        setForm({
+          groupName: "",
+          description: "",
+        });
+        setAlert({
+          open: true,
+          message: "Success",
+          description: "User group added successfully",
+          variant: "default",
+        });
+        // ---------- redirect to user groups page ---------
+        router.push("/users/user_groups");
+      } else {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: data.error,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
       setAlert({
         open: true,
         message: "Error",
-        description: data.error,
+        description: "Error adding user group",
         variant: "destructive",
       });
+    } finally {
+      // --------- set loading to false ---------
+      setLoading(false);
     }
-    setLoading(false);
   };
   return (
     <>

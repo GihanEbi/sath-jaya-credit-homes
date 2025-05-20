@@ -14,11 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader } from "@/components/Loader/Loader";
 
 // -------------services-----------------
 import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
+import { Loader } from "@/components/Loader/Loader";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
