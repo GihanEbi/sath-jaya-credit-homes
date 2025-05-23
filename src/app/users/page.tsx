@@ -20,45 +20,6 @@ import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
 import { Loader } from "@/components/Loader/Loader";
 
-const tempData = [
-  {
-    firstName: "Gihan",
-    lastName: "Piumal",
-    dob: "1995-11-04",
-    email: "gihanpiumal7@gmail.com",
-    phone: "0776603689",
-    address: "No-337, Perera Road, Alubomulla",
-    status: "Active",
-  },
-  {
-    firstName: "Gihan",
-    lastName: "Piumal",
-    dob: "1995-11-04",
-    email: "gihanpiumal7@gmail.com",
-    phone: "0776603689",
-    address: "No-337, Perera Road, Alubomulla",
-    status: "Active",
-  },
-  {
-    firstName: "Gihan",
-    lastName: "Piumal",
-    dob: "1995-11-04",
-    email: "gihanpiumal7@gmail.com",
-    phone: "0776603689",
-    address: "No-337, Perera Road, Alubomulla",
-    status: "Active",
-  },
-  {
-    firstName: "Gihan",
-    lastName: "Piumal",
-    dob: "1995-11-04",
-    email: "gihanpiumal7@gmail.com",
-    phone: "0776603689",
-    address: "No-337, Perera Road, Alubomulla",
-    status: "Active",
-  },
-];
-
 // -------------types-----------------
 type variant = "default" | "destructive";
 type Alert = {

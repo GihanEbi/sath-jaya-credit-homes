@@ -1,9 +1,15 @@
-import React from 'react'
+"use client";
+
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 const Dashboard = () => {
-  return (
-    <div>Dashboard</div>
-  )
-}
+  const router = useRouter();
+  useEffect(() => {
+    // login page
+    router.push("login");
+  }, []);
+  return <div></div>;
+};
 
-export default Dashboard
+export default Dashboard;
