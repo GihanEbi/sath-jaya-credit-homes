@@ -1,4 +1,5 @@
 // -------------services-----------------
+import { verifyToken } from "@/services/auth services/auth-service";
 import { connectDB } from "../../../../../lib/db";
 import UserModel from "../../../../../models/UserModel";
 
@@ -9,6 +10,35 @@ export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const pageNo = Number(searchParams.get("pageNo"));
   const pageSize = Number(searchParams.get("pageSize"));
+
+  // ----------- check if the token provided in headers -----------
+  const token = req.headers.get("token");
+  if (!token) {
+    return Response.json(
+      { success: false, message: "Token is required" },
+      { status: 401 },
+    );
+  } else {
+    // Validate the token
+    let isValidToken;
+    try {
+      isValidToken = verifyToken(token);
+
+      if (!isValidToken) {
+        return Response.json(
+          { success: false, message: "Invalid token" },
+          { status: 401 },
+        );
+      }
+    } catch (error) {
+      return Response.json(
+        { success: false, message: "Invalid token" },
+        { status: 401 },
+      );
+    }
+  }
+
+  
 
   //   --------- connect to database -----------
   await connectDB();
@@ -26,19 +56,15 @@ export async function POST(req: Request) {
       // -------- search value ------
       {
         $match: {
-          $and: [
-            searchValue !== ""
-              ? {
-                  $or: [
-                    {
-                      groupName: {
-                        $regex: new RegExp(searchValue, "i"),
-                      },
-                    },
-                  ],
-                }
-              : {},
-          ],
+          ...(searchValue !== "" && {
+            $or: [
+              {
+                firstName: {
+                  $regex: new RegExp(searchValue, "i"),
+                },
+              },
+            ],
+          }),
         },
       },
       {

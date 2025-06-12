@@ -32,3 +32,16 @@ export const UserGroupSchema = Joi.object({
   groupName: Joi.string().required().label("Group Name"),
   description: Joi.string().optional().empty("").label("Description"),
 });
+
+
+// Schema for a user login form
+export const LoginSchema = Joi.object({
+  email: Joi.string()
+    .required()
+    .regex(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+    )
+    .label("Email")
+    .messages({ "string.pattern.base": "Invalid Email" }),
+  password: Joi.string().required().label("Password"),
+});

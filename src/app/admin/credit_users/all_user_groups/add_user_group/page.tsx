@@ -35,7 +35,7 @@ const AddUserGroup = () => {
             <li>
               <Link
                 className="font-medium"
-                href="/credit_users/all_user_groups"
+                href="admin/credit_users/all_user_groups"
               >
                 Credit User Groups /
               </Link>
@@ -56,6 +56,7 @@ const AddUserGroup = () => {
                 { label: "Suranga Kalum", value: "DiVORCED" },
               ]}
               defaultValue="SINGLE"
+              handleChange={()=>{}}
             />
             <Select
               label="Members"
@@ -65,6 +66,7 @@ const AddUserGroup = () => {
                 { label: "Suranga Kalum", value: "DiVORCED" },
               ]}
               defaultValue="SINGLE"
+              handleChange={()=>{}}
             />
 
             <div className="flex justify-end gap-3">

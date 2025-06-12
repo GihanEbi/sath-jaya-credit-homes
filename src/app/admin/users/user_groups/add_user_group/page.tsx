@@ -9,10 +9,9 @@ import InputGroup from "@/components/FormElements/InputGroup";
 import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
 import { ShowcaseSection } from "@/components/Layouts/showcase-section";
 import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
-import { Select } from "@/components/FormElements/select";
 
 // -------------services-----------------
-import { UserSchema } from "../../../../lib/schemas";
+import { UserGroupSchema } from "../../../../../../lib/schemas";
 import { validation, validationProperty } from "@/services/schemaValidation";
 import { Loader } from "@/components/Loader/Loader";
 
@@ -25,28 +24,18 @@ type Alert = {
   variant: variant;
 };
 
-type userGroup = {
-  label: string;
-  value: string;
-};
-
-const AddUser = () => {
+const AddUserGroup = () => {
   const router = useRouter();
 
-  // --------- form for user details ----------
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    birthday: "",
-    email: "",
-    phoneNo: "",
-    address: "",
-    userGroupId: "",
+  // --------- form for user group details ----------
+  const [form, setForm] = React.useState({
+    groupName: "",
+    description: "",
   });
   // --------- form errors for user group details ----------
   const [formErrors, setFormErrors] = useState<any>({});
   // --------- alert for success and error messages ---------
-  const [alert, setAlert] = useState<Alert>({
+  const [alert, setAlert] = React.useState<Alert>({
     open: false,
     message: "",
     description: "",
@@ -54,54 +43,16 @@ const AddUser = () => {
   });
   // --------- state for loading spinner ---------
   const [loading, setLoading] = useState(false);
-  // --------- state for user groups ---------
-  const [userGroups, setUserGroups] = useState<userGroup[]>([]);
-
-  // --------- functions to do on component mount ---------
-  React.useEffect(() => {
-    fetchUserGroups();
-  }, []);
-
-  // --------- fetch user groups ---------
-  const fetchUserGroups = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        "/api/users/user-groups/get-user-group-without-pagination",
-        {
-          method: "GET",
-        },
-      );
-      const data = await response.json();
-      if (data) {
-        console.log(data);
-
-        setUserGroups(data.Details);
-      } else {
-        setAlert({
-          open: true,
-          message: "Error",
-          description: "User groups not found",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      setAlert({
-        open: true,
-        message: "Error",
-        description: "Error fetching user groups",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // -------- handleChange for input fields ---------
   const handleChange = (value: string, name: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
 
-    const errorMessage = validationProperty(UserSchema, name, value) as string;
+    const errorMessage = validationProperty(
+      UserGroupSchema,
+      name,
+      value,
+    ) as string;
 
     if (errorMessage !== null) {
       setFormErrors({
@@ -125,7 +76,7 @@ const AddUser = () => {
   // -------- handleSubmit for form submission ---------
   const handleSubmit = async () => {
     // -------- check full form validation
-    let checkForm = validation(UserSchema, form);
+    let checkForm = validation(UserGroupSchema, form);
     if (checkForm !== null) {
       setFormErrors(checkForm);
       return;
@@ -134,20 +85,26 @@ const AddUser = () => {
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/users/add-user", {
+      const res = await fetch("/api/users/user-groups/add-user-group", {
         method: "POST",
         body: JSON.stringify(form),
       });
       const data = await res.json();
 
-      if (data) {
+      if (data.createdUserGroup) {
+        // ---------- reset form values ---------
+        setForm({
+          groupName: "",
+          description: "",
+        });
         setAlert({
           open: true,
           message: "Success",
-          description: "User added successfully",
+          description: "User group added successfully",
           variant: "default",
         });
-        router.push("/users");
+        // ---------- redirect to user groups page ---------
+        router.push("admin/users/user_groups");
       } else {
         setAlert({
           open: true,
@@ -160,7 +117,7 @@ const AddUser = () => {
       setAlert({
         open: true,
         message: "Error",
-        description: "Error adding user",
+        description: "Error adding user group",
         variant: "destructive",
       });
     } finally {
@@ -168,7 +125,6 @@ const AddUser = () => {
       setLoading(false);
     }
   };
-
   return (
     <>
       {loading && (
@@ -178,7 +134,7 @@ const AddUser = () => {
       )}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[26px] font-bold leading-[30px] text-dark dark:text-white">
-          Add User
+          Add User Group
         </h2>
 
         <nav>
@@ -189,95 +145,36 @@ const AddUser = () => {
               </Link>
             </li>
             <li>
-              <Link className="font-medium" href="/users/">
-                Users /
+              <Link className="font-medium" href="/admin/users//user_groups">
+                User Groups /
               </Link>
             </li>
-            <li className="font-medium text-primary">Add User</li>
+            <li className="font-medium text-primary">Add User Group</li>
           </ol>
         </nav>
       </div>
 
       <div className="sm:grid-cols-2">
         <div className="flex flex-col gap-9">
-          <ShowcaseSection title="User Details" className="space-y-5.5 !p-6.5">
+          <ShowcaseSection
+            title="User Group Details"
+            className="space-y-5.5 !p-6.5"
+          >
             <InputGroup
-              label="First Name"
-              placeholder="First Name"
+              label="Group Name"
+              placeholder="Group Name"
               type="text"
-              handleChange={(e) => {
-                handleChange(e.target.value, "firstName");
-              }}
-              value={form.firstName}
-              error={formErrors.firstName ? formErrors.firstName : ""}
               required
-            />
-            <InputGroup
-              label="Last Name"
-              placeholder="Last Name"
-              type="text"
-              handleChange={(e) => {
-                handleChange(e.target.value, "lastName");
-              }}
-              value={form.lastName}
-              error={formErrors.lastName ? formErrors.lastName : ""}
-              required
-            />
-            <InputGroup
-              label="Date of Birth"
-              placeholder="date of birth"
-              type="date"
-              handleChange={(e) => {
-                handleChange(e.target.value, "birthday");
-              }}
-              value={form.birthday}
-              error={formErrors.birthday ? formErrors.birthday : ""}
-              required
-            />
-            <InputGroup
-              label="Email"
-              placeholder="Email"
-              type="text"
-              handleChange={(e) => {
-                handleChange(e.target.value, "email");
-              }}
-              value={form.email}
-              error={formErrors.email ? formErrors.email : ""}
-              required
-            />
-            <InputGroup
-              label="Phone No"
-              placeholder="Phone No"
-              type="text"
-              handleChange={(e) => {
-                handleChange(e.target.value, "phoneNo");
-              }}
-              value={form.phoneNo}
-              error={formErrors.phoneNo ? formErrors.phoneNo : ""}
-              required
+              handleChange={(e) => handleChange(e.target.value, "groupName")}
+              value={form.groupName}
+              error={formErrors.groupName ? formErrors.groupName : ""}
             />
 
             <TextAreaGroup
-              label="Address"
-              placeholder="Address"
-              handleChange={(e) => {
-                handleChange(e.target.value, "address");
-              }}
-              value={form.address}
-              error={formErrors.address ? formErrors.address : ""}
-              required
-            />
-            <Select
-              label="User Group"
-              items={userGroups}
-              defaultValue=""
-              placeholder="Select User Group"
-              handleChange={(e) => {
-                handleChange(e.target.value, "userGroupId");
-              }}
-              value={form.userGroupId}
-              error={formErrors.userGroupId ? formErrors.userGroupId : ""}
-              required
+              label="Description"
+              placeholder="Description"
+              handleChange={(e) => handleChange(e.target.value, "description")}
+              value={form.description}
             />
 
             <div className="flex justify-end gap-3">
@@ -285,7 +182,7 @@ const AddUser = () => {
                 className="flex justify-center rounded-lg border border-stroke px-6 py-[7px] font-medium text-dark hover:shadow-1 dark:border-dark-3 dark:text-white"
                 type="button"
                 onClick={() => {
-                  router.push("/users");
+                  router.push("/admin/users/user_groups");
                 }}
               >
                 Cancel
@@ -315,4 +212,4 @@ const AddUser = () => {
   );
 };
 
-export default AddUser;
+export default AddUserGroup;

@@ -129,7 +129,7 @@ const Users = () => {
           <button
             className="flex items-center justify-center rounded-lg bg-primary px-6 py-[7px] font-medium text-gray-2 hover:bg-opacity-90"
             onClick={() => {
-              router.push("users/add_user");
+              router.push("/admin/users/add_user");
             }}
           >
             Add
