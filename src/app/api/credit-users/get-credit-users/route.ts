@@ -1,7 +1,7 @@
 // -------------services-----------------
 import { CheckUserAccess } from "@/services/auth services/auth-service";
 import { connectDB } from "../../../../../lib/db";
-import UserModel from "../../../../../models/UserModel";
+import CreditUserModel from "../../../../../models/CreditUserModel";
 
 type isValidTokenTypes = {
   success: boolean;
@@ -42,14 +42,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const users = await UserModel.aggregate([
+    const creditUsers = await CreditUserModel.aggregate([
       // -------- search value ------
       {
         $match: {
           ...(searchValue !== "" && {
             $or: [
               {
-                firstName: {
+                fullName: {
                   $regex: new RegExp(searchValue, "i"),
                 },
               },
@@ -73,11 +73,11 @@ export async function POST(req: Request) {
       },
     ]);
 
-    if (!users) {
+    if (!creditUsers) {
       return Response.json(
         {
           success: false,
-          message: "Users not Found",
+          message: "Credit users not Found",
         },
         { status: 404 },
       );
@@ -86,19 +86,21 @@ export async function POST(req: Request) {
     //  --------- return when pagination values are provided ---------
     if (pageNo && pageSize) {
       let response = {
-        details: users[0].data,
+        details: creditUsers[0].data,
         noOfPages: Math.ceil(
-          users[0].metadata.length !== 0
-            ? users[0].metadata[0].total / pageSize
+          creditUsers[0].metadata.length !== 0
+            ? creditUsers[0].metadata[0].total / pageSize
             : 0,
         ),
         noOfRecords:
-          users[0].metadata.length !== 0 ? users[0].metadata[0].total : 0,
+          creditUsers[0].metadata.length !== 0
+            ? creditUsers[0].metadata[0].total
+            : 0,
       };
       return Response.json(
         {
           success: true,
-          message: "Users data",
+          message: "Credit users data",
           response,
         },
         { status: 200 },
@@ -106,13 +108,13 @@ export async function POST(req: Request) {
     } else {
       //  --------- return when pagination values are not provided ---------
       return Response.json(
-        { success: true, message: "Users data", Details: users },
+        { success: true, message: "Credit users data", Details: creditUsers },
         { status: 200 },
       );
     }
   } catch (error) {
     return Response.json(
-      { success: false, message: "Error getting users data" },
+      { success: false, message: "Error getting credit users data" },
       { status: 400 },
     );
   }

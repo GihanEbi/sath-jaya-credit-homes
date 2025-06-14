@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../../../lib/db";
 import UserModel from "../../../../../models/UserModel";
-import bcrypt from "bcrypt";
 import { hashPassword } from "@/utils/hashUtils";
 import { config } from "@/config";
 import { createId } from "@/services/id_generator/id-generator-service";
 import { id_codes } from "@/constants/id_code_constants";
 import sgMail from "@sendgrid/mail";
+import { CheckUserAccess } from "@/services/auth services/auth-service";
+import UserGroupModel from "../../../../../models/UserGroupModel";
+
+type isValidTokenTypes = {
+  success: boolean;
+  message: string;
+  status?: number;
+  // Optional userId if needed for further processing
+  userId?: string;
+};
 
 sgMail.setApiKey(config.emailConfig.apiKey);
 
@@ -21,6 +30,17 @@ export async function POST(req: Request) {
     userGroupId,
   } = await req.json();
 
+  // ----------- check if the token provided in headers -----------
+  const tokenString = req.headers.get("token");
+  const isValidToken: isValidTokenTypes = CheckUserAccess(tokenString);
+
+  if (!isValidToken.success) {
+    return Response.json(
+      { success: isValidToken.success, message: isValidToken.message },
+      { status: isValidToken.status },
+    );
+  }
+
   //   --------- connect to database -----------
   await connectDB();
 
@@ -33,6 +53,16 @@ export async function POST(req: Request) {
       { error: "User email or phone no already exists" },
       { status: 409 },
     );
+  }
+
+  // --------- check user group is available -----------
+  const userGroup = await UserGroupModel.find({ ID: userGroupId });
+  if (userGroup.length === 0) {
+    return NextResponse.json({
+      success: false,
+      message: "User group not found",
+      status: 404,
+    });
   }
 
   // ----------- random password generator -----------

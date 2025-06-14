@@ -19,6 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
 import { Loader } from "@/components/Loader/Loader";
+import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
+import { get_user_groups } from "@/routes/userGroups/userGroupRoutes";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -70,27 +72,13 @@ const UserGroups = () => {
     searchValue: string,
   ) => {
     setLoading(true);
-    const queryParams = new URLSearchParams({
-      pageNo: pageNo.toString(),
-      pageSize: pageSize.toString(),
-    });
+    const params = {
+      pageNo: pageNo,
+      pageSize: pageSize,
+    };
     try {
-      const response = await fetch(
-        `/api/users/user-groups/get-user-group?${queryParams.toString()}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            searchValue: searchValue,
-          }),
-        },
-      );
-
-      const data = await response.json();
+      const data = await get_user_groups(params, searchValue);
       if (data.success) {
-        console.log(data);
         setTableData(data.response.details);
         setNoOfPages(data.response.noOfPages);
         setNoOfRecords(data.response.noOfRecords);
@@ -103,6 +91,8 @@ const UserGroups = () => {
         });
       }
     } catch (error) {
+      console.log(error);
+
       setAlert({
         open: true,
         message: "Error",
@@ -193,11 +183,20 @@ const UserGroups = () => {
             currentPage={pageNo}
             totalPages={noOfPages}
             onPageChange={(currentPage) => {
-              setPageNo(currentPage)
+              setPageNo(currentPage);
               fetchUserGroups(currentPage, pageSize, searchValue);
             }}
           />
         </div>
+        <AlertDialogDemo
+          isOpen={alert.open}
+          title={alert.message}
+          description={alert.description}
+          variant={alert.variant}
+          handleCancel={() => {
+            setAlert({ ...alert, open: false });
+          }}
+        />
       </div>
     </>
   );

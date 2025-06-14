@@ -1,7 +1,7 @@
 // -------------services-----------------
-import { connectDB } from "../../../../../../lib/db";
-import UserGroupModel from "../../../../../../models/UserGroupModel";
 import { CheckUserAccess } from "@/services/auth services/auth-service";
+import { connectDB } from "../../../../../lib/db";
+import CreditUserModel from "../../../../../models/CreditUserModel";
 
 type isValidTokenTypes = {
   success: boolean;
@@ -22,37 +22,39 @@ export async function GET(req: Request) {
       { status: isValidToken.status },
     );
   }
+
   //   --------- connect to database -----------
   await connectDB();
 
   try {
-    const userGroups = await UserGroupModel.aggregate([
+    const creditUsers = await CreditUserModel.aggregate([
       {
         $project: {
           _id: 0,
-          label: "$groupName",
+          label: "$fullName",
           value: "$ID",
         },
       },
     ]);
 
-    if (!userGroups) {
+    if (!creditUsers) {
       return Response.json(
         {
           success: false,
-          message: "User groups not Found",
+          message: "Credit users not Found",
         },
         { status: 404 },
       );
     }
-    //  --------- return userGroups ---------
+
+    //  --------- return creditUSers ---------
     return Response.json(
-      { success: true, message: "User groups data", Details: userGroups },
+      { success: true, message: "User groups data", Details: creditUsers },
       { status: 200 },
     );
   } catch (error) {
     return Response.json(
-      { success: false, message: "Error getting user groups data" },
+      { success: false, message: "Error getting credit users data" },
       { status: 400 },
     );
   }

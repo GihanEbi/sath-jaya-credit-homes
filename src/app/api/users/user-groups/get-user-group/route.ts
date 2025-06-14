@@ -1,6 +1,16 @@
 // -------------services-----------------
+import { CheckUserAccess } from "@/services/auth services/auth-service";
 import { connectDB } from "../../../../../../lib/db";
 import UserGroupModel from "../../../../../../models/UserGroupModel";
+import page from "@/app/login/page";
+
+type isValidTokenTypes = {
+  success: boolean;
+  message: string;
+  status?: number;
+  // Optional userId if needed for further processing
+  userId?: string;
+};
 
 export async function POST(req: Request) {
   // --------- search value ----------
@@ -9,6 +19,20 @@ export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const pageNo = Number(searchParams.get("pageNo"));
   const pageSize = Number(searchParams.get("pageSize"));
+
+  console.log("Search Value:", pageNo, pageSize, searchValue);
+  
+
+  // ----------- check if the token provided in headers -----------
+  const tokenString = req.headers.get("token");
+  const isValidToken: isValidTokenTypes = CheckUserAccess(tokenString);
+
+  if (!isValidToken.success) {
+    return Response.json(
+      { success: isValidToken.success, message: isValidToken.message },
+      { status: isValidToken.status },
+    );
+  }
 
   //   --------- connect to database -----------
   await connectDB();

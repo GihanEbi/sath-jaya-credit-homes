@@ -5,9 +5,29 @@ import { connectDB } from "../../../../../../lib/db";
 import UserGroupModel from "../../../../../../models/UserGroupModel";
 import { createId } from "@/services/id_generator/id-generator-service";
 import { id_codes } from "@/constants/id_code_constants";
+import { CheckUserAccess } from "@/services/auth services/auth-service";
+
+type isValidTokenTypes = {
+  success: boolean;
+  message: string;
+  status?: number;
+  // Optional userId if needed for further processing
+  userId?: string;
+};
 
 export async function POST(req: Request) {
   const { groupName, description } = await req.json();
+
+  // ----------- check if the token provided in headers -----------
+  const tokenString = req.headers.get("token");
+  const isValidToken: isValidTokenTypes = CheckUserAccess(tokenString);
+
+  if (!isValidToken.success) {
+    return Response.json(
+      { success: isValidToken.success, message: isValidToken.message },
+      { status: isValidToken.status },
+    );
+  }
 
   //   --------- connect to database -----------
   await connectDB();
@@ -31,18 +51,18 @@ export async function POST(req: Request) {
   try {
     const ID = await createId(id_codes.idCode.userGroup);
     createdUserGroup = new UserGroupModel({
-        ID,
-        groupName,
-        description: description,
-        isActive: true,
+      ID,
+      groupName,
+      description: description,
+      isActive: true,
     });
-    
+
     await createdUserGroup.save();
 
     return NextResponse.json({ createdUserGroup }, { status: 201 });
   } catch (error) {
     console.log("Error creating user group", error);
-    
+
     return NextResponse.json(
       { error: "Error adding user group" },
       { status: 500 },
