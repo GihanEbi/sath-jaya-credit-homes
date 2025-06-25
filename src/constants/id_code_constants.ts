@@ -4,5 +4,6 @@ export class id_codes {
     userGroup: "UG",
     creditUser: "CUS",
     creditUserGroup: "CUG",
+    loan: "LO",
   };
 }

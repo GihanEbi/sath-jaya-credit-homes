@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../../../lib/db";
-import { createId } from "@/services/id_generator/id-generator-service";
-import { id_codes } from "@/constants/id_code_constants";
 import { CheckUserAccess } from "@/services/auth services/auth-service";
 import CreditUserModel from "../../../../../models/CreditUserModel";
 
@@ -15,6 +13,7 @@ type isValidTokenTypes = {
 
 export async function POST(req: Request) {
   const {
+    creditUserID,
     fullName,
     gender,
     birthday,
@@ -44,11 +43,13 @@ export async function POST(req: Request) {
   //   --------- connect to database -----------
   await connectDB();
 
-  // ------------ Check if user already exists -----------
-  const existingUser = await CreditUserModel.find({
+  // ------------ Check if user already exists in other collections -----------
+  const existingUser = await CreditUserModel.findOne({
     $or: [{ nic }, { phoneNo }],
+    ID: { $ne: creditUserID }, // Exclude the current user being edited
   });
-  if (existingUser.length > 0) {
+
+  if (existingUser) {
     return NextResponse.json({
       success: false,
       message: "User NIC or phone no already exists",
@@ -56,45 +57,37 @@ export async function POST(req: Request) {
     });
   }
 
-  // ----------- create created user details -----------
-  let createdCreditUser;
-
+  // ----------- edit user details -----------
+  let updatedCreditUser;
   try {
-    // --------- unique ID generator ---------
-    let userId = await createId(id_codes.idCode.creditUser);
-
-    // --------- create user object ---------
-    createdCreditUser = new CreditUserModel({
-      ID: userId,
-      fullName,
-      gender,
-      birthday,
-      permanentAddress,
-      phoneNo,
-      address,
-      nic,
-      maritalState,
-      email,
-      profilePicture,
-      nicFrontPicture,
-      nicBackPicture,
-      locationCertificationPicture,
-      isActive:true, // Default to true, can be changed later
-    });
-
-    await createdCreditUser.save();
-
-    return NextResponse.json(
+    updatedCreditUser = await CreditUserModel.findOneAndUpdate(
+      { ID: creditUserID },
       {
-        success: true,
-        message: "User added successfully",
-        data: createdCreditUser,
+        fullName,
+        gender,
+        birthday,
+        permanentAddress,
+        phoneNo,
+        address,
+        nic,
+        maritalState,
+        email,
+        profilePicture,
+        nicFrontPicture,
+        nicBackPicture,
+        locationCertificationPicture,
       },
-      { status: 201 },
+      { new: true },
     );
+
+    return NextResponse.json({
+      success: true,
+      message: "User details updated successfully",
+      data: updatedCreditUser,
+    });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Error adding user" },
+      { success: false, message: "Error updating user details" },
       { status: 500 },
     );
   }

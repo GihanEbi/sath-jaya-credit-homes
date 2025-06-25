@@ -104,6 +104,20 @@ export async function POST(req: Request) {
     );
   }
 
+  // ------------ check if member is a leader of any other collection -------
+  const isMemberLeaderInOtherGroups = await CreditUserGroupModel.findOne({
+    leaderID: { $in: memberIDs },
+  });
+  if (isMemberLeaderInOtherGroups) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "One or more members are already leaders of other groups",
+      },
+      { status: 409 },
+    );
+  }
+
   // ------------ Create Credit User Group -----------
   let creditUserGroup;
   try {
