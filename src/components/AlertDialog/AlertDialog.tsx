@@ -36,6 +36,9 @@ export function AlertDialogDemo({
     <AlertDialog open={isOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
+          <AlertDialogTitle></AlertDialogTitle>
+        </AlertDialogHeader>
+        <AlertDialogHeader>
           <AlertDialogDescription>
             <AlertDestructive
               title={title}
@@ -50,7 +53,7 @@ export function AlertDialogDemo({
               handleCancel();
             }}
           >
-            Cancel
+            Ok
           </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>

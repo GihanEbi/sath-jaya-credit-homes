@@ -11,6 +11,8 @@ interface PropsType {
   icon?: React.ReactNode;
   defaultValue?: string;
   handleChange?: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  value?: string;
+  error?: string;
 }
 
 export function TextAreaGroup({
@@ -23,6 +25,8 @@ export function TextAreaGroup({
   icon,
   defaultValue,
   handleChange,
+  error,
+  value
 }: PropsType) {
   const id = useId();
 
@@ -33,6 +37,7 @@ export function TextAreaGroup({
         className="mb-3 block text-body-sm font-medium text-dark dark:text-white"
       >
         {label}
+        {required && <span className="ml-1 select-none text-red">*</span>}
       </label>
 
       <div className="relative mt-3 [&_svg]:pointer-events-none [&_svg]:absolute [&_svg]:left-5.5 [&_svg]:top-5.5">
@@ -48,10 +53,14 @@ export function TextAreaGroup({
           required={required}
           disabled={disabled}
           data-active={active}
+          value={value}
           onChange={handleChange}
         />
 
         {icon}
+      </div>
+      <div className="mt-1">
+        {error && <h2 className="text-red text-sm">{error}</h2>}
       </div>
     </div>
   );

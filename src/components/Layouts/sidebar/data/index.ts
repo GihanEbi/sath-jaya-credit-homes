@@ -6,7 +6,7 @@ export const NAV_DATA = [
     items: [
       {
         title: "Dashboard",
-        url: "/",
+        url: "/admin/dashboard",
         icon: Icons.HomeIcon,
         items: [],
       },
@@ -16,11 +16,11 @@ export const NAV_DATA = [
         items: [
           {
             title: "All Users",
-            url: "/credit_users/all_users",
+            url: "/admin/credit_users/all_users",
           },
           {
             title: "All User Groups",
-            url: "/credit_users/all_user_groups",
+            url: "/admin/credit_users/all_user_groups",
           },
         ],
       },
@@ -30,19 +30,19 @@ export const NAV_DATA = [
         items: [
           {
             title: "New Loan",
-            url: "/loan_details/new_loan",
+            url: "/admin/loan_details/new_loan",
           },
           {
             title: "All Loans",
-            url: "/loan_details/all_loans",
+            url: "/admin/loan_details/all_loans",
           },
           {
             title: "Pending Loans",
-            url: "/loan_details/pending_loans",
+            url: "/admin/loan_details/pending_loans",
           },
           {
             title: "Ongoing Loans",
-            url: "/loan_details/ongoing_loans",
+            url: "/admin/loan_details/ongoing_loans",
           },
         ],
       },
@@ -52,15 +52,15 @@ export const NAV_DATA = [
         items: [
           {
             title: "Users",
-            url: "/users",
+            url: "/admin/users",
           },
           {
             title: "User Groups",
-            url: "/users/user_groups",
+            url: "/admin/users/user_groups",
           },
           {
             title: "Group Rules",
-            url: "/users/group_rules",
+            url: "/admin/users/group_rules",
           },
         ],
       },
