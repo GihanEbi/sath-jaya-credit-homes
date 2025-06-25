@@ -33,6 +33,14 @@ export const UserGroupSchema = Joi.object({
   description: Joi.string().optional().empty("").label("Description"),
 });
 
+// Schema for a credit user group registration form
+export const CreditUserGroupSchema = Joi.object({
+  leaderID: Joi.string().required().label("Leader ID"),
+  memberIDs: Joi.array()
+    .items(Joi.string().required())
+    .required()
+    .label("Member IDs"),
+});
 
 // Schema for a user login form
 export const LoginSchema = Joi.object({

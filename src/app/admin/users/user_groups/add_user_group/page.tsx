@@ -14,6 +14,7 @@ import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
 import { UserGroupSchema } from "../../../../../../lib/schemas";
 import { validation, validationProperty } from "@/services/schemaValidation";
 import { Loader } from "@/components/Loader/Loader";
+import { create_user_group } from "@/routes/userGroups/userGroupRoutes";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -82,16 +83,12 @@ const AddUserGroup = () => {
       return;
     }
     // -------- prevent multiple submission
-    if (loading) return;
-    setLoading(true);
     try {
-      const res = await fetch("/api/users/user-groups/add-user-group", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
+      if (loading) return;
+      setLoading(true);
+      const data = await create_user_group(form);
 
-      if (data.createdUserGroup) {
+      if (data.success) {
         // ---------- reset form values ---------
         setForm({
           groupName: "",
@@ -100,16 +97,16 @@ const AddUserGroup = () => {
         setAlert({
           open: true,
           message: "Success",
-          description: "User group added successfully",
+          description: data.message,
           variant: "default",
         });
         // ---------- redirect to user groups page ---------
-        router.push("admin/users/user_groups");
+        router.push("/admin/users/user_groups");
       } else {
         setAlert({
           open: true,
           message: "Error",
-          description: data.error,
+          description: data.message,
           variant: "destructive",
         });
       }

@@ -15,6 +15,8 @@ import { Select } from "@/components/FormElements/select";
 import { UserSchema } from "../../../../../lib/schemas";
 import { validation, validationProperty } from "@/services/schemaValidation";
 import { Loader } from "@/components/Loader/Loader";
+import { get_user_groups_without_pagination } from "@/routes/userGroups/userGroupRoutes";
+import { create_user } from "@/routes/users/userRoutes";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -64,24 +66,16 @@ const AddUser = () => {
 
   // --------- fetch user groups ---------
   const fetchUserGroups = async () => {
-    setLoading(true);
     try {
-      const response = await fetch(
-        "/api/users/user-groups/get-user-group-without-pagination",
-        {
-          method: "GET",
-        },
-      );
-      const data = await response.json();
-      if (data) {
-        console.log(data);
-
+      setLoading(true);
+      const data = await get_user_groups_without_pagination();
+      if (data.success) {
         setUserGroups(data.Details);
       } else {
         setAlert({
           open: true,
           message: "Error",
-          description: "User groups not found",
+          description: data.message,
           variant: "destructive",
         });
       }
@@ -132,19 +126,15 @@ const AddUser = () => {
     }
     // -------- prevent multiple submission
     if (loading) return;
-    setLoading(true);
     try {
-      const res = await fetch("/api/users/add-user", {
-        method: "POST",
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
+      setLoading(true);
+      const data = await create_user(form);
 
-      if (data) {
+      if (data.success) {
         setAlert({
           open: true,
           message: "Success",
-          description: "User added successfully",
+          description: data.message,
           variant: "default",
         });
         router.push("/admin/users");
@@ -152,7 +142,7 @@ const AddUser = () => {
         setAlert({
           open: true,
           message: "Error",
-          description: data.error,
+          description: data.message,
           variant: "destructive",
         });
       }
