@@ -12,8 +12,9 @@ type isValidTokenTypes = {
 };
 
 export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const creditUserID = searchParams.get("creditUserID");
   const {
-    creditUserID,
     fullName,
     gender,
     birthday,

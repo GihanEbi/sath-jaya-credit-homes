@@ -8,7 +8,7 @@ type params = {
 type searchValue = string | undefined;
 
 type User = {
-  creditUserID: string;
+  creditUserID?: string;
   fullName: string;
   gender: string;
   birthday: string;
@@ -16,7 +16,7 @@ type User = {
   phoneNo: string;
   address: string;
   nic: string;
-  maritalStatus: string;
+  maritalState: string;
   email: string;
   profilePicture: string;
   nicFrontPicture: string;
@@ -74,9 +74,33 @@ export async function create_credit_user(userData: User) {
   }
 }
 
-export async function edit_credit_user(userData: User) {
+export async function get_credit_user_by_id(userID: string | null) {
+  
+  const queryParams = new URLSearchParams({
+    userID: userID?.toString() || "",
+  });
   try {
-    const res = await fetch(`${commonUrl}/edit-credit-user`, {
+    const res = await fetch(`${commonUrl}/get-credit-user-by-id?${queryParams.toString()}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        token: `${getToken()}`, // Uncomment if you need to send a token
+      },
+      body: JSON.stringify({ userID }),
+    });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return error;
+  }
+}
+
+export async function edit_credit_user(userData: User, userID: string | null) {
+  try {
+    const queryParams = new URLSearchParams({
+      creditUserID: userID?.toString() || "",
+    });
+    const res = await fetch(`${commonUrl}/edit-credit-user?${queryParams.toString()}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

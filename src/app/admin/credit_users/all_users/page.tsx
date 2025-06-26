@@ -11,14 +11,33 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // -------------services-----------------
 import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
 import { Loader } from "@/components/Loader/Loader";
 import React, { useEffect } from "react";
-import { get_credit_users } from "@/routes/credit-user/creditUserRoute";
+import {
+  change_status,
+  get_credit_users,
+} from "@/routes/credit-user/creditUserRoute";
 import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
+import DropDownMenuComponent from "@/components/DropDownMenuComponent/DropDownMenuComponent";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -111,6 +130,46 @@ const AllUsers = () => {
       setLoading(false);
     }
   };
+
+  // --------- function to change the user status ---------
+  const changeUserStatus = async (userID: string, isActive: boolean) => {
+    // prevent multiple clicks
+    if (loading) return;
+    try {
+      setLoading(true);
+      let dataObj = {
+        creditUserID: userID,
+        newStatus: isActive,
+      };
+      const data = await change_status(dataObj);
+
+      if (data.success) {
+        // setAlert({
+        //   open: true,
+        //   message: "Success",
+        //   description: data.message,
+        //   variant: "default",
+        // });
+        fetchUsers(pageNo, pageSize, searchValue);
+      } else {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setAlert({
+        open: true,
+        message: "Error",
+        description: "Error changing user status",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       {loading && (
@@ -156,7 +215,7 @@ const AllUsers = () => {
                 <TableCell
                   className="cursor-pointer"
                   onClick={() => {
-                    router.push("all_users/profile");
+                    router.push(`all_users/profile?userID=${item.ID}`);
                   }}
                 >
                   <p className="mt-[3px] text-body-sm font-medium">
@@ -201,11 +260,29 @@ const AllUsers = () => {
                 </TableCell>
 
                 <TableCell className="xl:pr-7.5">
-                  <div className="flex items-center justify-end gap-x-3.5">
-                    <button className="hover:text-primary">
-                      <span className="sr-only">View Profile</span>
-                      <TrashIcon />
-                    </button>
+                  <div className="flex cursor-pointer items-center justify-end gap-x-3.5">
+                    <DropDownMenuComponent
+                      options={[
+                        {
+                          label: "Edit",
+                          value: () => {
+                            router.push(`all_users/add_user?userID=${item.ID}`);
+                          },
+                        },
+                        {
+                          label: "View",
+                          value: () => {
+                            router.push(`all_users/profile?userID=${item.ID}`);
+                          },
+                        },
+                        {
+                          label: `${item.isActive ? "Deactivate" : "Activate"}`,
+                          value: () => {
+                            changeUserStatus(item.ID, !item.isActive);
+                          },
+                        },
+                      ]}
+                    />
                   </div>
                 </TableCell>
               </TableRow>
