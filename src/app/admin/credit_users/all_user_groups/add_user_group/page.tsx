@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ShowcaseSection } from "@/components/Layouts/showcase-section";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Select } from "@/components/FormElements/select";
 
 // -------------services-----------------
@@ -251,7 +251,7 @@ const AddUserGroup = () => {
         return;
       }
       // check if userId is leader
-      
+
       if (userId === form.leaderID) {
         setAlert({
           open: true,
@@ -278,7 +278,7 @@ const AddUserGroup = () => {
   };
 
   return (
-    <>
+    <Suspense>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[26px] font-bold leading-[30px] text-dark dark:text-white">
           Add User Group
@@ -386,7 +386,7 @@ const AddUserGroup = () => {
           }}
         />
       </div>
-    </>
+    </Suspense>
   );
 };
 
