@@ -67,11 +67,7 @@ export const creditUserSchema = Joi.object({
     .optional()
     .empty("")
     .messages({ "string.pattern.base": "Invalid Email" }),
-  profilePicture: Joi.string()
-    .required()
-    .optional()
-    .empty("")
-    .label("Profile Picture"),
+  profilePicture: Joi.string().optional().empty("").label("Profile Picture"),
   nicFrontPicture: Joi.string()
     .required()
     .optional()
@@ -140,7 +136,7 @@ export const LoanSchema = Joi.object({
   installment: Joi.number().required().label("Installment"),
   loanAmount: Joi.number().required().label("Loan Amount"),
   balanceLoanAmount: Joi.number().required().label("Balance Loan Amount"),
-  homeLocation: Joi.string().required().label("Home Location"),
+  homeLocation: Joi.string().optional().empty("").label("Home Location"),
   shearedApplicantFullName: Joi.string()
     .required()
     .label("Sheared Applicant Full Name"),
