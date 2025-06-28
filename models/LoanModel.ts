@@ -82,7 +82,7 @@ const loanSchema = new Schema<ILoan>(
     loanAmount: { type: Number, required: true },
     installment: { type: Number, required: true },
     balanceLoanAmount: { type: Number, required: true }, // Default to 0
-    homeLocation: { type: String, required: true },
+    homeLocation: { type: String, required: false },
 
     //   sheared applicant details
     shearedApplicantFullName: { type: String, required: true },
