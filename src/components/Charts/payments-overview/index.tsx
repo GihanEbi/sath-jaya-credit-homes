@@ -1,4 +1,3 @@
-import { PeriodPicker } from "@/components/period-picker";
 import { standardFormat } from "@/lib/format-number";
 import { cn } from "@/lib/utils";
 import { getPaymentsOverviewData } from "@/services/charts.services";
@@ -26,8 +25,6 @@ export async function PaymentsOverview({
         <h2 className="text-body-2xlg font-bold text-dark dark:text-white">
           Payments Overview
         </h2>
-
-        <PeriodPicker defaultValue={timeFrame} sectionKey="payments_overview" />
       </div>
 
       <PaymentsOverviewChart data={data} />
