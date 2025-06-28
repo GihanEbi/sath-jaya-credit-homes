@@ -57,6 +57,29 @@ export async function POST(req: Request) {
       //       }),
       //     },
       //   },
+      // join the applicant data with applicantID
+      {
+        $lookup: {
+          from: "credit_users",
+          localField: "applicantID",
+          foreignField: "ID",
+          as: "applicantData",
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          ID: 1,
+          applicantID: 1,
+          applicantName: { $arrayElemAt: ["$applicantData.fullName", 0] },
+          nic: { $arrayElemAt: ["$applicantData.nic", 0] },
+          phoneNO: { $arrayElemAt: ["$applicantData.phoneNo", 0] },
+          loanAmount: 1,
+          teamID: 1,
+          loanStatus: 1,
+          rejectedReason: 1, // Include reason for reject if available
+        },
+      },
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -114,5 +137,6 @@ export async function POST(req: Request) {
     return Response.json(
       { success: false, message: "Error getting loan data" },
       { status: 400 },
-    );}
+    );
+  }
 }

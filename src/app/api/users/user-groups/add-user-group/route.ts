@@ -38,10 +38,11 @@ export async function POST(req: Request) {
   });
 
   if (existingUserGroup.length !== 0) {
-    return NextResponse.json(
-      { error: "User group name already exists" },
-      { status: 409 },
-    );
+    return NextResponse.json({
+      success: false,
+      message: "User group name already exists",
+      status: 409,
+    });
   }
 
   // ----------- create created user details -----------
@@ -59,12 +60,17 @@ export async function POST(req: Request) {
 
     await createdUserGroup.save();
 
-    return NextResponse.json({ createdUserGroup }, { status: 201 });
-  } catch (error) {
-    console.log("Error creating user group", error);
-
     return NextResponse.json(
-      { error: "Error adding user group" },
+      {
+        success: true,
+        message: "User group added successfully",
+        data: createdUserGroup,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: "Error adding user group" },
       { status: 500 },
     );
   }

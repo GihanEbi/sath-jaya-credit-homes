@@ -30,6 +30,17 @@ export async function POST(req: Request) {
 
   //   --------- connect to database -----------
   await connectDB();
+
+  // ------------ Check if leaderID and memberIDs are provided -----------
+  if (!leaderID || !memberIDs || memberIDs.length === 0) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Leader ID and member IDs are required",
+      },
+      { status: 400 },
+    );
+  }
   // ------------ Check if leader exists -----------
   const leader = await CreditUserModel.find({ ID: leaderID });
   if (!leader) {

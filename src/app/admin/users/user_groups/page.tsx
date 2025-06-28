@@ -71,12 +71,12 @@ const UserGroups = () => {
     pageSize: number,
     searchValue: string,
   ) => {
-    setLoading(true);
     const params = {
       pageNo: pageNo,
       pageSize: pageSize,
     };
     try {
+      setLoading(true);
       const data = await get_user_groups(params, searchValue);
       if (data.success) {
         setTableData(data.response.details);
@@ -92,7 +92,6 @@ const UserGroups = () => {
       }
     } catch (error) {
       console.log(error);
-
       setAlert({
         open: true,
         message: "Error",

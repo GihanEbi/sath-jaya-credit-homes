@@ -12,8 +12,9 @@ type isValidTokenTypes = {
 };
 
 export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const creditUserID = searchParams.get("creditUserID");
   const {
-    creditUserID,
     fullName,
     gender,
     birthday,
@@ -42,6 +43,22 @@ export async function POST(req: Request) {
 
   //   --------- connect to database -----------
   await connectDB();
+  // ----------- check if credit user ID is provided -----------
+  if (!creditUserID) {
+    return NextResponse.json(
+      { success: false, message: "Credit user ID is required" },
+      { status: 400 },
+    );
+  }
+
+  // ----------- check if user exists in the database -----------
+  const creditUser = await CreditUserModel.findOne({ ID: creditUserID });
+  if (!creditUser) {
+    return NextResponse.json(
+      { success: false, message: "Credit user not found" },
+      { status: 404 },
+    );
+  }
 
   // ------------ Check if user already exists in other collections -----------
   const existingUser = await CreditUserModel.findOne({

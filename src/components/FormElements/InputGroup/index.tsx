@@ -11,7 +11,7 @@ type InputGroupProps = {
   disabled?: boolean;
   active?: boolean;
   handleChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  value?: string;
+  value?: string | number;
   name?: string;
   icon?: React.ReactNode;
   iconPosition?: "left" | "right";
@@ -77,7 +77,7 @@ const InputGroup: React.FC<InputGroupProps> = ({
         {icon}
       </div>
       <div className="mt-1">
-        {error && <h2 className="text-red text-sm">{error}</h2>}
+        {error && <h2 className="text-sm text-red">{error}</h2>}
       </div>
     </div>
   );

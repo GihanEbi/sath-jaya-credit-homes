@@ -49,10 +49,11 @@ export async function POST(req: Request) {
     $or: [{ email }, { phoneNo }],
   });
   if (existingUser.length > 0) {
-    return NextResponse.json(
-      { error: "User email or phone no already exists" },
-      { status: 409 },
-    );
+    return NextResponse.json({
+      success: false,
+      message: "User email or phone no already exists",
+      status: 409,
+    });
   }
 
   // --------- check user group is available -----------
@@ -165,16 +166,25 @@ export async function POST(req: Request) {
 
       await sgMail.send(msg);
     } catch (error) {
-      console.log(error);
-
-      return NextResponse.json(
-        { error: "user added successfully but mail not sent" },
-        { status: 500 },
-      );
+      return NextResponse.json({
+        success: false,
+        message: "user added successfully but mail not sent",
+        status: 500,
+      });
     }
 
-    return NextResponse.json({ createdUser }, { status: 201 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "User group added successfully",
+        data: createdUser,
+      },
+      { status: 201 },
+    );
   } catch (error) {
-    return NextResponse.json({ error: "Error adding user" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: "Error adding user group" },
+      { status: 500 },
+    );
   }
 }

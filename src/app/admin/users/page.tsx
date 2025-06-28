@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
 import { Loader } from "@/components/Loader/Loader";
+import { get_users } from "@/routes/users/userRoutes";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -34,9 +35,9 @@ interface userObj {
   ID: string;
   firstName: string;
   lastName: string;
-  dob: string;
+  birthday: string;
   email: string;
-  phone: string;
+  phoneNo: string;
   address: string;
   status: string;
 }
@@ -73,25 +74,14 @@ const Users = () => {
     pageSize: number,
     searchValue: string,
   ) => {
-    setLoading(true);
-    const queryParams = new URLSearchParams({
-      pageNo: pageNo.toString(),
-      pageSize: pageSize.toString(),
-    });
+    const params = {
+      pageNo: pageNo,
+      pageSize: pageSize,
+    };
     try {
-      const response = await fetch(
-        `/api/users/get-users?${queryParams.toString()}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            searchValue: searchValue,
-          }),
-        },
-      );
-      const data = await response.json();
+      setLoading(true);
+
+      const data = await get_users(params, searchValue);
       if (data.success) {
         setTableData(data.response.details);
         setNoOfPages(data.response.noOfPages);
@@ -167,7 +157,7 @@ const Users = () => {
                 </TableCell>
                 <TableCell>
                   <p className="mt-[3px] text-body-sm font-medium">
-                    {item.dob}
+                    {item.birthday}
                   </p>
                 </TableCell>
                 <TableCell>
@@ -177,7 +167,7 @@ const Users = () => {
                 </TableCell>
                 <TableCell>
                   <p className="mt-[3px] text-body-sm font-medium">
-                    {item.phone}
+                    {item.phoneNo}
                   </p>
                 </TableCell>
                 <TableCell>

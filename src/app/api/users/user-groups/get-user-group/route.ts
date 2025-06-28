@@ -71,7 +71,7 @@ export async function POST(req: Request) {
           data: [
             {
               $sort: {
-                createdAt: 1,
+                createdAt:  -1 as -1 | 1, // or 1 for ascending
               },
             },
             { $skip: skip },

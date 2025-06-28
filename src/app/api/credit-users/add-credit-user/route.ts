@@ -48,6 +48,9 @@ export async function POST(req: Request) {
   const existingUser = await CreditUserModel.find({
     $or: [{ nic }, { phoneNo }],
   });
+
+  console.log(existingUser);
+  
   if (existingUser.length > 0) {
     return NextResponse.json({
       success: false,
@@ -93,6 +96,8 @@ export async function POST(req: Request) {
       { status: 201 },
     );
   } catch (error) {
+    console.log("Error adding user:", error);
+    
     return NextResponse.json(
       { success: false, message: "Error adding user" },
       { status: 500 },
