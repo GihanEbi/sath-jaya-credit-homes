@@ -71,6 +71,55 @@ export async function create_credit_user_group(userGroupData: creditUserGroup) {
   }
 }
 
+export async function edit_credit_user_group(
+  userGroupData: creditUserGroup,
+  creditUserGroupID: string | null,
+) {
+  try {
+    const queryParams = new URLSearchParams({
+      creditUserGroupID: creditUserGroupID?.toString() || "",
+    });
+    const res = await fetch(
+      `${commonUrl}/edit-credit-user-group?${queryParams.toString()}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token: `${getToken()}`, // Uncomment if you need to send a token
+        },
+        body: JSON.stringify(userGroupData),
+      },
+    );
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return error;
+  }
+}
+
+export async function get_credit_user_group_by_id(userGroupID: string | null) {
+  const queryParams = new URLSearchParams({
+    userGroupID: userGroupID?.toString() || "",
+  });
+  try {
+    const res = await fetch(
+      `${commonUrl}/get-credit-user-group-by-id?${queryParams.toString()}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          token: `${getToken()}`, // Uncomment if you need to send a token
+        },
+        body: JSON.stringify({ userGroupID }),
+      },
+    );
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return error;
+  }
+}
+
 export async function change_leader(userGroupData: changeLeader) {
   try {
     const res = await fetch(`${commonUrl}/change-leader`, {
@@ -117,6 +166,26 @@ export async function change_group_members(
       },
       body: JSON.stringify(userGroupData),
     });
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    return error;
+  }
+}
+
+
+export async function get_credit_user_groups_without_pagination() {
+  try {
+    const res = await fetch(
+      `${commonUrl}/get-credit-user-groups-without-pagination`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          token: `${getToken()}`, // Uncomment if you need to send a token
+        },
+      },
+    );
     const data = await res.json();
     return data;
   } catch (error) {

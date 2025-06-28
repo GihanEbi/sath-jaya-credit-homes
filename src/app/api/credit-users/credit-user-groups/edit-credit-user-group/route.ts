@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "../../../../../../lib/db";
-import { createId } from "@/services/id_generator/id-generator-service";
-import { id_codes } from "@/constants/id_code_constants";
 import { CheckUserAccess } from "@/services/auth services/auth-service";
-import CreditUserModel from "../../../../../../models/CreditUserModel";
 import CreditUserGroupModel from "../../../../../../models/CreditUserGroupModel";
+import CreditUserModel from "../../../../../../models/CreditUserModel";
 
 type isValidTokenTypes = {
   success: boolean;
@@ -15,6 +13,8 @@ type isValidTokenTypes = {
 };
 
 export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const creditUserGroupID = searchParams.get("creditUserGroupID");
   const { leaderID, memberIDs } = await req.json();
 
   // ----------- check if the token provided in headers -----------
@@ -37,6 +37,20 @@ export async function POST(req: Request) {
       {
         success: false,
         message: "Leader ID and member IDs are required",
+      },
+      { status: 400 },
+    );
+  }
+
+  // check if the creditUserGroupID is in loans collection as a teamID
+  const isInLoansCollection = await CreditUserGroupModel.findOne({
+    teamID: creditUserGroupID,
+  });
+  if (isInLoansCollection) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Cannot edit. One or more members have loan in this group",
       },
       { status: 400 },
     );
@@ -64,8 +78,11 @@ export async function POST(req: Request) {
       { status: 404 },
     );
   }
-  //   ------------ check if the leaderId is already as a group leader -----------
-  const existingGroup = await CreditUserGroupModel.findOne({ leaderID });
+  //   ------------ check if the leaderId is already as a group leader exists not creditUserGroupID -----------
+  const existingGroup = await CreditUserGroupModel.findOne({
+    leaderID: leaderID,
+    ID: { $ne: creditUserGroupID },
+  });
   if (existingGroup) {
     return NextResponse.json(
       {
@@ -78,6 +95,7 @@ export async function POST(req: Request) {
   //   ------------ check if the memberIDs are already in a group -----------
   const existingMembersInGroup = await CreditUserGroupModel.find({
     memberIDs: { $in: memberIDs },
+    ID: { $ne: creditUserGroupID },
   });
   if (existingMembersInGroup.length > 0) {
     return NextResponse.json(
@@ -129,42 +147,26 @@ export async function POST(req: Request) {
     );
   }
 
-  // ------------ Create Credit User Group -----------
-  let creditUserGroup;
+  //   ---- edit credit user group details ----
+  let updatedCreditUserGroup;
   try {
-    // --------- unique ID generator ---------
-    let creditUserGroupId = await createId(id_codes.idCode.creditUserGroup);
-    creditUserGroup = new CreditUserGroupModel({
-      ID: creditUserGroupId,
-      leaderID,
-      memberIDs,
-      isActive: true,
-    });
-
-    await creditUserGroup.save();
-
-    // --------- Update Credit User Model with group ID ---------
-    await CreditUserModel.updateMany(
-      { ID: { $in: memberIDs } },
-      { $set: { userGroupId: creditUserGroupId } }
-    );
-
-    await CreditUserModel.updateOne(
-      { ID: leaderID },
-      { $set: { userGroupId: creditUserGroupId } }
-    );
-
-    return NextResponse.json(
+    updatedCreditUserGroup = await CreditUserGroupModel.findOneAndUpdate(
+      { ID: creditUserGroupID },
       {
-        success: true,
-        message: "Credit user group created successfully",
-        data: creditUserGroup,
+        leaderID,
+        memberIDs,
       },
-      { status: 201 },
+      { new: true },
     );
+
+    return NextResponse.json({
+      success: true,
+      message: "User group details updated successfully",
+      data: updatedCreditUserGroup,
+    });
   } catch (error) {
     return NextResponse.json(
-      { success: false, message: "Error creating credit user group" },
+      { success: false, message: "Error updating user group details" },
       { status: 500 },
     );
   }

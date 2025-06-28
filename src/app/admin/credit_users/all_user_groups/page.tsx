@@ -20,6 +20,7 @@ import React, { useEffect } from "react";
 import { get_credit_users } from "@/routes/credit-user/creditUserRoute";
 import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
 import { get_credit_user_groups } from "@/routes/credit_user_groups/creditUserGroupRoutes";
+import DropDownMenuComponent from "@/components/DropDownMenuComponent/DropDownMenuComponent";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -153,7 +154,7 @@ const AllUserGroups = () => {
                   <p
                     className="mt-[3px] cursor-pointer text-body-sm font-medium"
                     onClick={() => {
-                      router.push("/credit_users/all_users/profile");
+                      router.push(`all_users/profile?userID=${item.leader.ID}`);
                     }}
                   >
                     {item.leader.fullName}
@@ -165,7 +166,7 @@ const AllUserGroups = () => {
                       key={index}
                       className="mt-[3px] cursor-pointer text-body-sm font-medium"
                       onClick={() => {
-                        router.push("/credit_users/all_users/profile");
+                        router.push(`all_users/profile?userID=${member.ID}`);
                       }}
                     >
                       {member.fullName}
@@ -190,11 +191,19 @@ const AllUserGroups = () => {
                 </TableCell>
 
                 <TableCell className="xl:pr-7.5">
-                  <div className="flex items-center justify-end gap-x-3.5">
-                    <button className="hover:text-primary">
-                      <span className="sr-only">Delete Invoice</span>
-                      <TrashIcon />
-                    </button>
+                  <div className="flex cursor-pointer items-center justify-end gap-x-3.5">
+                    <DropDownMenuComponent
+                      options={[
+                        {
+                          label: "Edit",
+                          value: () => {
+                            router.push(
+                              `all_user_groups/add_user_group?userGroupID=${item.groupId}`,
+                            );
+                          },
+                        },
+                      ]}
+                    />
                   </div>
                 </TableCell>
               </TableRow>

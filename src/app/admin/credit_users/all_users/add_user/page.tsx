@@ -708,7 +708,7 @@ const AddUser = () => {
                 className="flex justify-center rounded-lg border border-stroke px-6 py-[7px] font-medium text-dark hover:shadow-1 dark:border-dark-3 dark:text-white"
                 type="button"
                 onClick={() => {
-                  router.push("/credit_users/all_users");
+                  router.push("/admin/credit_users/all_users");
                 }}
               >
                 Cancel

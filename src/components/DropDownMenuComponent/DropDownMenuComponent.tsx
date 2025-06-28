@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { EllipsisVertical } from "lucide-react";
 
 import {
@@ -25,8 +25,9 @@ const DropDownMenuComponent: React.FC<DropDownIconMenuComponentProps> = ({
   options,
 }) => {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <EllipsisVertical />
       </DropdownMenuTrigger>
@@ -36,6 +37,7 @@ const DropDownMenuComponent: React.FC<DropDownIconMenuComponentProps> = ({
             key={index}
             onClick={() => {
               item.value();
+              setOpen(false); 
             }}
             className="cursor-pointer"
           >

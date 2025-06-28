@@ -2,6 +2,7 @@
 import { CheckUserAccess } from "@/services/auth services/auth-service";
 import { connectDB } from "../../../../../lib/db";
 import LoanModel from "../../../../../models/LoanModel";
+import { loanConstants } from "@/constants/loan_constants";
 
 type isValidTokenTypes = {
   success: boolean;
@@ -43,21 +44,7 @@ export async function POST(req: Request) {
 
   try {
     const loans = await LoanModel.aggregate([
-      // -------- search value ------
-      //   {
-      //     $match: {
-      //       ...(searchValue !== "" && {
-      //         $or: [
-      //           {
-      //             fullName: {
-      //               $regex: new RegExp(searchValue, "i"),
-      //             },
-      //           },
-      //         ],
-      //       }),
-      //     },
-      //   },
-      // join the applicant data with applicantID
+      { $match: { loanStatus: loanConstants.status.approved } },
       {
         $lookup: {
           from: "credit_users",
@@ -77,7 +64,6 @@ export async function POST(req: Request) {
           loanAmount: 1,
           teamID: 1,
           loanStatus: 1,
-          rejectedReason: 1, // Include reason for reject if available
         },
       },
       {

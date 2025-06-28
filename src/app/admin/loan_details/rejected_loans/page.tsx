@@ -11,9 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { PaginationComponent } from "@/components/Pagination/PaginationComponent";
 import { Loader } from "@/components/Loader/Loader";
@@ -21,9 +18,10 @@ import React, { useEffect } from "react";
 import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
 import DropDownMenuComponent from "@/components/DropDownMenuComponent/DropDownMenuComponent";
 import {
-  approve_reject_loan,
+  delete_loan,
   get_loans,
-  get_pending_loans,
+  get_rejected_loans,
+  set_reject_to_pending,
 } from "@/routes/loan/loanRoutes";
 import { loanConstants } from "@/constants/loan_constants";
 import ConfirmationDialog from "@/components/ConfirmationDialog/ConfirmationDialog";
@@ -60,6 +58,7 @@ type Loan = {
   nic: string;
   phoneNO: string;
   loanStatus: string;
+  rejectedReason?: string; // Optional field for rejected loans
 };
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -70,7 +69,7 @@ type Alert = {
   variant: variant;
 };
 
-const PendingLoans = () => {
+const AllLoans = () => {
   const router = useRouter();
   // --------- alert for success and error messages ---------
   const [alert, setAlert] = React.useState<Alert>({
@@ -90,11 +89,12 @@ const PendingLoans = () => {
   const [noOfRecords, setNoOfRecords] = React.useState(0);
   // ---------- state for store backend data -----------
   const [tableData, setTableData] = React.useState<Loan[]>([]);
-
-  const [openApproveModel, setOpenApproveModel] = React.useState(false);
-  const [openRejectModel, setOpenRejectModel] = React.useState(false);
+  const [openPendingModel, setOpenPendingModel] = React.useState(false);
+  const [openDeleteModel, setOpenDeleteModel] = React.useState(false);
   const [reasonForReject, setReasonForReject] = React.useState("");
-  const [selectedLoanID, setSelectedLoanID] = React.useState<string>("");
+  const [openViewRejectedReasonModel, setOpenViewRejectedReasonModel] =
+    React.useState(false);
+  const [selectedLoanID, setSelectedLoanID] = React.useState("");
 
   // --------- first render to get users data ---------
   useEffect(() => {
@@ -114,7 +114,7 @@ const PendingLoans = () => {
     try {
       setLoading(true);
 
-      const data = await get_pending_loans(params, searchValue);
+      const data = await get_rejected_loans(params, searchValue);
       if (data.success) {
         setTableData(data.response.details);
         setNoOfPages(data.response.noOfPages);
@@ -140,24 +140,23 @@ const PendingLoans = () => {
   };
 
   // function to approve the loan
-  const approveLoan = async () => {
+  const setLoanStatusToPending = async () => {
     try {
       setLoading(true);
-      const response = await approve_reject_loan({
+      const response = await set_reject_to_pending({
         loanID: selectedLoanID,
-        action: loanConstants.status.approved,
+        action: loanConstants.status.pending,
       });
       if (response.success) {
         setAlert({
           open: true,
           message: "Success",
-          description: "Loan approved successfully",
+          description: "Loan status set to pending successfully",
           variant: "default",
         });
         fetchTableData(pageNo, pageSize, searchValue);
         setSelectedLoanID("");
-        setOpenApproveModel(false);
-        setOpenRejectModel(false);
+        setOpenPendingModel(false);
       } else {
         setAlert({
           open: true,
@@ -174,31 +173,28 @@ const PendingLoans = () => {
         variant: "destructive",
       });
     } finally {
-      setOpenApproveModel(false);
+      setOpenPendingModel(false);
       setLoading(false);
     }
   };
 
-  // function to reject the loan
-  const rejectLoan = async () => {
+  // function for delete loan
+  const deleteLoan = async () => {
     try {
       setLoading(true);
-      const response = await approve_reject_loan({
+      const response = await delete_loan({
         loanID: selectedLoanID,
-        action: loanConstants.status.rejected,
-        rejectedReason: reasonForReject,
       });
       if (response.success) {
         setAlert({
           open: true,
           message: "Success",
-          description: "Loan rejected successfully",
+          description: "Loan deleted successfully",
           variant: "default",
         });
         fetchTableData(pageNo, pageSize, searchValue);
         setSelectedLoanID("");
-        setOpenApproveModel(false);
-        setOpenRejectModel(false);
+        setOpenDeleteModel(false);
       } else {
         setAlert({
           open: true,
@@ -211,16 +207,14 @@ const PendingLoans = () => {
       setAlert({
         open: true,
         message: "Error",
-        description: "Error rejecting loan",
+        description: "Error approving loan",
         variant: "destructive",
       });
     } finally {
-      setOpenApproveModel(false);
-      setOpenRejectModel(false);
+      setOpenPendingModel(false);
       setLoading(false);
     }
   };
-
   return (
     <>
       {loading && (
@@ -228,7 +222,7 @@ const PendingLoans = () => {
           <Loader />
         </div>
       )}
-      <Breadcrumb pageName="Pending Loans" />
+      <Breadcrumb pageName="Rejected Loans" />
       <div className="rounded-[10px] border border-stroke bg-white p-4 shadow-1 dark:border-dark-3 dark:bg-gray-dark dark:shadow-card sm:p-7.5">
         <Table>
           <TableHeader>
@@ -289,12 +283,38 @@ const PendingLoans = () => {
                     {item.loanAmount}
                   </p>
                 </TableCell>
+                {/* <TableCell>
+                  <div
+                    className={cn(
+                      "max-w-fit rounded-full px-3.5 py-1 text-sm font-medium",
+                      {
+                        "bg-[#219653]/[0.08] text-[#dfe231]":
+                          item.loanStatus === loanConstants.status.pending,
+                        "bg-[#219653]/[0.08] text-[#219653]":
+                          item.loanStatus === loanConstants.status.approved,
+                        "bg-[#219653]/[0.08] text-[#180ea5]":
+                          item.loanStatus === loanConstants.status.ongoing,
+                        "bg-[#D34053]/[0.08] text-[#D34053]":
+                          item.loanStatus === loanConstants.status.rejected,
+                        "bg-[#D34053]/[0.08] text-[#ba36ee]":
+                          item.loanStatus === loanConstants.status.completed,
+                      },
+                    )}
+                  >
+                    {item.loanStatus}
+                  </div>
+                </TableCell> */}
 
                 <TableCell className="xl:pr-7.5">
                   <div
                     className="flex cursor-pointer items-center justify-end gap-x-3.5"
                     onClick={() => {
                       setSelectedLoanID(item.ID);
+                      setReasonForReject(
+                        item.rejectedReason
+                          ? item.rejectedReason
+                          : "No reason provided",
+                      );
                     }}
                   >
                     <DropDownMenuComponent
@@ -315,18 +335,37 @@ const PendingLoans = () => {
                             );
                           },
                         },
-                        {
-                          label: "Approve loan",
-                          value: () => {
-                            setOpenApproveModel(true);
-                          },
-                        },
-                        {
-                          label: "Reject loan",
-                          value: () => {
-                            setOpenRejectModel(true);
-                          },
-                        },
+                        ...(item.loanStatus === loanConstants.status.rejected
+                          ? [
+                              {
+                                label: "Set to pending",
+                                value: () => {
+                                  setOpenPendingModel(true);
+                                },
+                              },
+                            ]
+                          : []),
+                        ...(item.loanStatus === loanConstants.status.rejected
+                          ? [
+                              {
+                                label: "View Rejected Reason",
+                                value: () => {
+                                  setOpenViewRejectedReasonModel(true);
+                                },
+                              },
+                            ]
+                          : []),
+                        ...(item.loanStatus !== loanConstants.status.ongoing ||
+                        item.loanStatus === loanConstants.status.completed
+                          ? [
+                              {
+                                label: "Delete loan",
+                                value: () => {
+                                  setOpenDeleteModel(true);
+                                },
+                              },
+                            ]
+                          : []),
                       ]}
                     />
                   </div>
@@ -345,51 +384,44 @@ const PendingLoans = () => {
             }}
           />
         </div>
-        {/* Alert Dialog for Approve Loan */}
+        {/* set to pending */}
         <ConfirmationDialog
-          isOpen={openApproveModel}
-          title="Approve Loan"
-          description="Are you sure you want to approve this loan?"
-          onCancel={() => setOpenApproveModel(false)}
+          isOpen={openPendingModel}
+          title="Set Loan to Pending"
+          description="Are you sure you want to set this loan to pending?"
+          onCancel={() => setOpenPendingModel(false)}
           isSaveButton={true}
           onSubmit={() => {
-            approveLoan();
-            setOpenApproveModel(false);
+            setLoanStatusToPending();
+            setOpenPendingModel(false);
           }}
         />
-        {/* Alert Dialog for Reject Loan */}
+        {/* view rejected reason */}
         <ConfirmationDialog
-          isOpen={openRejectModel}
-          title="Reject Loan"
-          description="Are you sure you want to reject this loan?"
-          isInput={true}
-          inputLabel="Reason for rejection"
-          inputPlaceholder="Enter reason for rejection"
-          inputChange={(e: any) => {
-            setReasonForReject(e.target.value);
-          }}
-          isSaveButton={true}
-          inputValue={reasonForReject}
-          isInputRequired={true}
-          onCancel={() => setOpenRejectModel(false)}
+          isOpen={openViewRejectedReasonModel}
+          title="Rejected Reason"
+          description={reasonForReject || "No reason provided"}
+          onCancel={() => setOpenViewRejectedReasonModel(false)}
           onSubmit={() => {
-            // Handle reject loan logic here
-            rejectLoan();
-            setOpenRejectModel(false);
+            setOpenViewRejectedReasonModel(false);
+            setReasonForReject("");
+          }}
+        />
+        {/* delete loan */}
+        <ConfirmationDialog
+          isOpen={openDeleteModel}
+          title="Delete Loan"
+          description="Are you sure you want to delete this loan?"
+          onCancel={() => setOpenDeleteModel(false)}
+          isSaveButton={true}
+          onSubmit={() => {
+            deleteLoan();
+            setOpenDeleteModel(false);
           }}
         />
       </div>
-      <AlertDialogDemo
-        isOpen={alert.open}
-        title={alert.message}
-        description={alert.description}
-        variant={alert.variant}
-        handleCancel={() => {
-          setAlert({ ...alert, open: false });
-        }}
-      />
     </>
   );
 };
 
-export default PendingLoans;
+export default AllLoans;

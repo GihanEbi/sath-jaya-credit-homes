@@ -14,9 +14,15 @@ import {
   create_user_group,
   get_user_groups_without_pagination,
 } from "@/routes/userGroups/userGroupRoutes";
-import { create_credit_user_group } from "@/routes/credit_user_groups/creditUserGroupRoutes";
+import {
+  create_credit_user_group,
+  edit_credit_user_group,
+  get_credit_user_group_by_id,
+} from "@/routes/credit_user_groups/creditUserGroupRoutes";
 import { get_credit_users_without_pagination } from "@/routes/credit-user/creditUserRoute";
 import MultiSelect from "@/components/FormElements/MultiSelect";
+import { AlertDialogDemo } from "@/components/AlertDialog/AlertDialog";
+import { useSearchParams } from "next/navigation";
 
 // -------------types-----------------
 type variant = "default" | "destructive";
@@ -39,6 +45,7 @@ type users = {
 
 const AddUserGroup = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // --------- form for user group details ----------
   const [form, setForm] = React.useState({
@@ -58,11 +65,53 @@ const AddUserGroup = () => {
   const [loading, setLoading] = useState(false);
   // --------- state for user ---------
   const [user, setUser] = useState<users[]>([]);
+  const [tempUsers, setTempUsers] = useState<string[]>([]);
+
+  // --------- get userGroupID from query params if exists ---------
+  const userGroupID = searchParams.get("userGroupID");
 
   // --------- functions to do on component mount ---------
   React.useEffect(() => {
+    if (userGroupID) {
+      fetchUserGroupData(userGroupID);
+    }
     fetchUsers();
-  }, []);
+  }, [userGroupID]);
+
+  // --------- function to get user groups data ---------
+  const fetchUserGroupData = async (userGroupID: string | null) => {
+    try {
+      setLoading(true);
+
+      const data = await get_credit_user_group_by_id(userGroupID);
+
+      if (data.success) {
+        // get only members ids from members array in data.details
+        const memberIDs = data.Details.members.map((member: any) => member.ID);
+        setForm({
+          leaderID: data.Details.leader.ID,
+          memberIDs: memberIDs,
+        });
+        setTempUsers(memberIDs);
+      } else {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setAlert({
+        open: true,
+        message: "Error",
+        description: "Error fetching user data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // --------- fetch users ---------
   const fetchUsers = async () => {
@@ -122,17 +171,37 @@ const AddUserGroup = () => {
 
   // -------- handleSubmit for form submission ---------
   const handleSubmit = async () => {
+    // set tempUsers to memberIDs in form
+    setForm((prev) => ({ ...prev, memberIDs: tempUsers }));
     // -------- check full form validation
-    let checkForm = validation(CreditUserGroupSchema, form);
+    let checkForm = validation(CreditUserGroupSchema, {
+      leaderID: form.leaderID,
+      memberIDs: tempUsers,
+    }) as any;
     if (checkForm !== null) {
       setFormErrors(checkForm);
       return;
     }
     // -------- prevent multiple submission
+    if (loading) return;
     try {
-      if (loading) return;
       setLoading(true);
-      const data = await create_credit_user_group(form);
+      let data;
+      if (userGroupID) {
+        // if userGroupID exists, edit the user group
+        data = await edit_credit_user_group(
+          {
+            leaderID: form.leaderID,
+            memberIDs: tempUsers,
+          },
+          userGroupID,
+        );
+      } else {
+        data = await create_credit_user_group({
+          leaderID: form.leaderID,
+          memberIDs: tempUsers,
+        });
+      }
 
       if (data.success) {
         // ---------- reset form values ---------
@@ -140,14 +209,13 @@ const AddUserGroup = () => {
           leaderID: "",
           memberIDs: [] as string[],
         });
+        setTempUsers([]);
         setAlert({
           open: true,
           message: "Success",
           description: data.message,
           variant: "default",
         });
-        // ---------- redirect to credit user groups page ---------
-        router.push("/admin/credit_users/all_user_groups");
       } else {
         setAlert({
           open: true,
@@ -166,6 +234,46 @@ const AddUserGroup = () => {
     } finally {
       // --------- set loading to false ---------
       setLoading(false);
+    }
+  };
+
+  //  ----------- handle add or remove user from tempUsers -----------
+  const handleMemberChange = (userId: string, isAdd: boolean) => {
+    if (isAdd) {
+      // check if userId is already in tempUsers
+      if (tempUsers.includes(userId)) {
+        // setAlert({
+        //   open: true,
+        //   message: "warning",
+        //   description: "User already added",
+        //   variant: "destructive",
+        // });
+        return;
+      }
+      // check if userId is leader
+      
+      if (userId === form.leaderID) {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: "Leader cannot be a member",
+          variant: "destructive",
+        });
+        return;
+      }
+      // check if user limit is reached
+      if (tempUsers.length >= 4) {
+        setAlert({
+          open: true,
+          message: "Error",
+          description: "Maximum 5 users can be added with leader",
+          variant: "destructive",
+        });
+        return;
+      }
+      setTempUsers((prev) => [...prev, userId]);
+    } else {
+      setTempUsers((prev) => prev.filter((id) => id !== userId));
     }
   };
 
@@ -212,13 +320,39 @@ const AddUserGroup = () => {
               required
             />
 
-            {/* <MultiSelect /> */}
             <Select
-              label="Members"
+              label="Member Name"
               items={user}
-              defaultValue="SINGLE"
-              handleChange={() => {}}
+              defaultValue=""
+              placeholder="Select Member"
+              handleChange={(e) => {
+                handleMemberChange(e.target.value, true);
+              }}
+              value=""
+              required
             />
+
+            {/* show the selected users full name  with delete icon in front*/}
+            <div className="flex flex-wrap gap-2">
+              {tempUsers.map((userId) => {
+                const userObj = user.find((u) => u.value === userId);
+                return (
+                  <div
+                    key={userId}
+                    className="flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 dark:bg-dark-3 dark:text-white"
+                  >
+                    {userObj?.label}
+                    <button
+                      type="button"
+                      onClick={() => handleMemberChange(userId, false)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
 
             <div className="flex justify-end gap-3">
               <button
@@ -242,6 +376,15 @@ const AddUserGroup = () => {
             </div>
           </ShowcaseSection>
         </div>
+        <AlertDialogDemo
+          isOpen={alert.open}
+          title={alert.message}
+          description={alert.description}
+          variant={alert.variant}
+          handleCancel={() => {
+            setAlert({ ...alert, open: false });
+          }}
+        />
       </div>
     </>
   );

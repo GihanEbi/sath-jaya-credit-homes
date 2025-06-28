@@ -109,3 +109,58 @@ export const LoginSchema = Joi.object({
     .messages({ "string.pattern.base": "Invalid Email" }),
   password: Joi.string().required().label("Password"),
 });
+
+// Schema for a user loan form
+export const LoanSchema = Joi.object({
+  branchName: Joi.string().required().label("Branch Name"),
+  centerName: Joi.string().required().label("Center Name"),
+  memberNo: Joi.string().required().label("Member No"),
+  teamID: Joi.string().required().label("Team ID"),
+  applicantID: Joi.string().required().label("Applicant ID"),
+  purposeOfLoan: Joi.string().required().label("Purpose of Loan"),
+  mainIncomePerson: Joi.string().required().label("Main Income Person"),
+  mainIncomePersonPhoneNo: Joi.string()
+    .required()
+    .label("Main Income Person Phone No"),
+  mainIncomePersonNic: Joi.string().required().label("Main Income Person NIC"),
+  monthlyFamilyIncome: Joi.number().required().label("Monthly Family Income"),
+  relationship: Joi.string().required().label("Relationship"),
+  loanBefore: Joi.boolean().required().label("Loan Before"),
+  loanOrganization: Joi.string()
+    .empty("")
+    .label("Loan Organization")
+    .when("loanBefore", {
+      is: true,
+      then: Joi.string().required().messages({
+        "any.required": `"Loan Organization" is required when "Loan Before" is true`,
+        "string.empty": `"Loan Organization" cannot be empty when "Loan Before" is true`,
+      }),
+      otherwise: Joi.optional(),
+    }),
+  installment: Joi.number().required().label("Installment"),
+  loanAmount: Joi.number().required().label("Loan Amount"),
+  balanceLoanAmount: Joi.number().required().label("Balance Loan Amount"),
+  homeLocation: Joi.string().required().label("Home Location"),
+  shearedApplicantFullName: Joi.string()
+    .required()
+    .label("Sheared Applicant Full Name"),
+  shearedApplicantAddress: Joi.string()
+    .required()
+    .label("Sheared Applicant Address"),
+  shearedApplicantPhoneNo: Joi.string()
+    .required()
+    .label("Sheared Applicant Phone No"),
+  shearedApplicantNic: Joi.string().required().label("Sheared Applicant NIC"),
+  shearedApplicantBirthday: Joi.string()
+    .required()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .label("Sheared Applicant Birthday")
+    .messages({ "string.pattern.base": "Invalid Date Format" }),
+  shearedApplicantMaritalStatus: Joi.string()
+    .valid("SINGLE", "MARRIED", "DIVORCED", "WIDOWED")
+    .required()
+    .label("Sheared Applicant Marital Status"),
+  guarantorID1: Joi.string().required().label("Guarantor ID 1"),
+  guarantorID2: Joi.string().required().label("Guarantor ID 2"),
+  guarantorID3: Joi.string().optional().empty("").label("Guarantor ID 3"),
+});

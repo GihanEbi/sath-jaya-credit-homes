@@ -13,8 +13,14 @@ type isValidTokenTypes = {
 };
 
 export async function POST(req: Request) {
-  const { loanID, action, interestRate, installmentTime, noOfInstallments } =
-    await req.json();
+  const {
+    loanID,
+    action,
+    interestRate,
+    installmentTime,
+    noOfInstallments,
+    loanStartingDate,
+  } = await req.json();
 
   // ----------- check if the token provided in headers -----------
   const tokenString = req.headers.get("token");
@@ -67,10 +73,16 @@ export async function POST(req: Request) {
   //   set loan installment history
 
   let installmentHistoryList = [];
+  console.log("No of Installments:", noOfInstallments);
 
   for (let i = 0; i < noOfInstallments; i++) {
-    let installmentDate = new Date();
-    installmentDate.setDate(new Date().getDate() + installmentTime * (i + 1));
+    console.log("Installment No:", i + 1);
+
+    let installmentDate = new Date(loanStartingDate);
+    installmentDate.setDate(
+      installmentDate.getDate() + installmentTime * (i + 1),
+    );
+
     installmentHistoryList.push({
       installmentNo: i + 1,
       installmentAmount,
@@ -117,7 +129,7 @@ export async function POST(req: Request) {
         interestRate: interestRate.interestRate,
         installmentTime: installmentTime,
         noOfInstallments: noOfInstallments,
-        loanStartedDate: new Date(),
+        loanStartedDate: loanStartingDate,
         loanInstallmentsHistory: installmentHistoryList,
         nextInstallmentDate: nextInstallmentDate,
         nextInstallmentAmount: nextInstallmentAmount,

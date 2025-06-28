@@ -41,6 +41,14 @@ export const NAV_DATA = [
             url: "/admin/loan_details/pending_loans",
           },
           {
+            title: "Rejected Loans",
+            url: "/admin/loan_details/rejected_loans",
+          },
+          {
+            title: "Approved Loans",
+            url: "/admin/loan_details/approved_loans",
+          },
+          {
             title: "Ongoing Loans",
             url: "/admin/loan_details/ongoing_loans",
           },

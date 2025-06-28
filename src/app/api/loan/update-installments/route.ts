@@ -82,22 +82,13 @@ export async function POST(req: Request) {
       installment.status === loanConstants.installmentStatus.pending,
   );
 
-  //   set next installment date and amount
-  let nextInstallmentDate: Date | undefined = undefined;
-  let nextInstallmentAmount: number | undefined = undefined;
-
   if (nextInstallment) {
-    nextInstallmentDate = nextInstallment.installmentDate;
-    nextInstallmentAmount = nextInstallment.installmentAmount;
+    existingLoan.nextInstallmentDate = nextInstallment.installmentDate;
+    existingLoan.nextInstallmentAmount = nextInstallment.installmentAmount;
   } else {
-    return NextResponse.json({
-      success: false,
-      message: "No pending installment found.",
-      status: 404,
-    });
+    existingLoan.nextInstallmentDate = null;
+    existingLoan.nextInstallmentAmount = 0;
   }
-  existingLoan.nextInstallmentDate = nextInstallmentDate;
-  existingLoan.nextInstallmentAmount = nextInstallmentAmount;
 
   try {
     await existingLoan.save();
