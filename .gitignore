@@ -15,7 +15,7 @@
 
 # production
 /build
-/public/files
+# /public/files
 .env
 
 # misc
