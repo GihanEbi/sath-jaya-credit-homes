@@ -125,8 +125,8 @@ export default function LoginWithPassword() {
   return (
     <>
       {loading && (
-        <div className="flex h-screen items-center justify-center">
-          <Loader size={40} className="text-blue-500" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/50 dark:bg-gray-dark/50">
+          <Loader />
         </div>
       )}
       <div>

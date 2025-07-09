@@ -257,6 +257,8 @@ const NewLoanComponent = () => {
 
   // -------- handleChange for input fields ---------
   const handleChange = (value: string, name: string) => {
+    console.log(`Field: ${name}, Value: ${value}`);
+    
     setForm((prev) => ({ ...prev, [name]: value }));
 
     const errorMessage = validationProperty(LoanSchema, name, value) as string;
@@ -503,18 +505,15 @@ const NewLoanComponent = () => {
                 />
                 <Select
                   label="Do you get any loan before any other organization"
-                  items={[
-                    { label: "Yes", value: true },
-                    { label: "No", value: false },
-                  ]}
+                  items={userConstants.LoanBefore}
                   defaultValue={false}
                   handleChange={(e) => {
-                    handleChange(e.target.value, "loanOrganization");
+                    handleChange(e.target.value, "loanBefore");
                   }}
-                  value={form.loanOrganization}
+                  value={form.loanBefore}
                   error={
-                    formErrors.loanOrganization
-                      ? formErrors.loanOrganization
+                    formErrors.loanBefore
+                      ? formErrors.loanBefore
                       : ""
                   }
                   required
@@ -760,7 +759,7 @@ const NewLoanComponent = () => {
                 <Select
                   label="Sheared applicant marital status"
                   items={userConstants.MaritalStatus}
-                  defaultValue="NO"
+                  defaultValue=""
                   handleChange={(e) => {
                     handleChange(
                       e.target.value,

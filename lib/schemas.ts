@@ -153,7 +153,7 @@ export const LoanSchema = Joi.object({
     .label("Sheared Applicant Birthday")
     .messages({ "string.pattern.base": "Invalid Date Format" }),
   shearedApplicantMaritalStatus: Joi.string()
-    .valid("SINGLE", "MARRIED", "DIVORCED", "WIDOWED")
+    .valid("SINGLE", "MARRIED", "DIVORCED", "WIDOWED", "SEPARATED")
     .required()
     .label("Sheared Applicant Marital Status"),
   guarantorID1: Joi.string().required().label("Guarantor ID 1"),

@@ -1,10 +1,10 @@
 // -------------services-----------------
 import { CheckUserAccess } from "@/services/auth services/auth-service";
 import { connectDB } from "../../../../../lib/db";
-import LoanModel from "../../../../../models/LoanModel";
-import { loanConstants } from "@/constants/loan_constants";
+import UserModel from "../../../../../models/UserModel";
 import { NextResponse } from "next/server";
 import { access_levels } from "@/constants/access_constants";
+import RuleModel from "../../../../../models/RuleModel";
 
 type isValidTokenTypes = {
   success: boolean;
@@ -21,31 +21,31 @@ export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const pageNo = Number(searchParams.get("pageNo"));
   const pageSize = Number(searchParams.get("pageSize"));
-
-  // ----------- check if the token provided in headers -----------
-  const tokenString = req.headers.get("token");
-  if (!tokenString) {
-    return NextResponse.json(
-      { success: false, message: "Token is required" },
-      { status: 401 },
+  
+    // ----------- check if the token provided in headers -----------
+    const tokenString = req.headers.get('token');
+    if (!tokenString) {
+      return NextResponse.json(
+        { success: false, message: 'Token is required' },
+        { status: 401 }
+      );
+    }
+    const checkResult = await CheckUserAccess(
+      tokenString,
+      access_levels.GetGroupRules
     );
-  }
-  const checkResult = await CheckUserAccess(
-    tokenString,
-    access_levels.GetPendingLoans,
-  );
-  const isValidToken: isValidTokenTypes = {
-    success: checkResult.success,
-    access: checkResult.access ?? "",
-    userId: checkResult.userId,
-  };
-
-  if (!isValidToken.success) {
-    return NextResponse.json(
-      { success: isValidToken.success, message: "Unauthorized" },
-      { status: 403 },
-    );
-  }
+    const isValidToken: isValidTokenTypes = {
+      success: checkResult.success,
+      access: checkResult.access ?? '',
+      userId: checkResult.userId,
+    };
+  
+    if (!isValidToken.success) {
+      return NextResponse.json(
+        { success: isValidToken.success, message: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
 
   //   --------- connect to database -----------
   await connectDB();
@@ -59,27 +59,19 @@ export async function POST(req: Request) {
   }
 
   try {
-    const loans = await LoanModel.aggregate([
-      { $match: { loanStatus: loanConstants.status.pending } },
+    const users = await RuleModel.aggregate([
+      // -------- search value ------
       {
-        $lookup: {
-          from: "credit_users",
-          localField: "applicantID",
-          foreignField: "ID",
-          as: "applicantData",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          ID: 1,
-          applicantID: 1,
-          applicantName: { $arrayElemAt: ["$applicantData.fullName", 0] },
-          nic: { $arrayElemAt: ["$applicantData.nic", 0] },
-          phoneNO: { $arrayElemAt: ["$applicantData.phoneNo", 0] },
-          loanAmount: 1,
-          teamID: 1,
-          loanStatus: 1,
+        $match: {
+          ...(searchValue !== "" && {
+            $or: [
+              {
+                firstName: {
+                  $regex: new RegExp(searchValue, "i"),
+                },
+              },
+            ],
+          }),
         },
       },
       {
@@ -88,7 +80,7 @@ export async function POST(req: Request) {
           data: [
             {
               $sort: {
-                createdAt: 1,
+                createdAt: 1 as -1 | 1, // or 1 for ascending
               },
             },
             { $skip: skip },
@@ -98,11 +90,11 @@ export async function POST(req: Request) {
       },
     ]);
 
-    if (!loans) {
+    if (!users) {
       return Response.json(
         {
           success: false,
-          message: "Credit users not Found",
+          message: "Rules not Found",
         },
         { status: 404 },
       );
@@ -111,19 +103,19 @@ export async function POST(req: Request) {
     //  --------- return when pagination values are provided ---------
     if (pageNo && pageSize) {
       let response = {
-        details: loans[0].data,
+        details: users[0].data,
         noOfPages: Math.ceil(
-          loans[0].metadata.length !== 0
-            ? loans[0].metadata[0].total / pageSize
+          users[0].metadata.length !== 0
+            ? users[0].metadata[0].total / pageSize
             : 0,
         ),
         noOfRecords:
-          loans[0].metadata.length !== 0 ? loans[0].metadata[0].total : 0,
+          users[0].metadata.length !== 0 ? users[0].metadata[0].total : 0,
       };
       return Response.json(
         {
           success: true,
-          message: "Credit users data",
+          message: "Rules data",
           response,
         },
         { status: 200 },
@@ -131,13 +123,13 @@ export async function POST(req: Request) {
     } else {
       //  --------- return when pagination values are not provided ---------
       return Response.json(
-        { success: true, message: "Loan data", Details: loans },
+        { success: true, message: "Rules data", Details: users },
         { status: 200 },
       );
     }
   } catch (error) {
     return Response.json(
-      { success: false, message: "Error getting loan data" },
+      { success: false, message: "Error getting Rules data" },
       { status: 400 },
     );
   }

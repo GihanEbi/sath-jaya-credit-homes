@@ -36,4 +36,15 @@ export class userConstants {
       value: "WIDOWED",
     },
   ];
+
+  static LoanBefore = [
+    {
+      label: "Yes",
+      value: true,
+    },
+    {
+      label: "No",
+      value: false,
+    },
+  ];
 }

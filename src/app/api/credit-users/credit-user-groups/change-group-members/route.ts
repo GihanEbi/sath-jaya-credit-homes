@@ -5,10 +5,11 @@ import { id_codes } from "@/constants/id_code_constants";
 import { CheckUserAccess } from "@/services/auth services/auth-service";
 import CreditUserModel from "../../../../../../models/CreditUserModel";
 import CreditUserGroupModel from "../../../../../../models/CreditUserGroupModel";
+import { access_levels } from "@/constants/access_constants";
 
 type isValidTokenTypes = {
   success: boolean;
-  message: string;
+  access: string;
   status?: number;
   // Optional userId if needed for further processing
   userId?: string;
@@ -19,20 +20,35 @@ export async function POST(req: Request) {
 
   // ----------- check if the token provided in headers -----------
   const tokenString = req.headers.get("token");
-  const isValidToken: isValidTokenTypes = CheckUserAccess(tokenString);
+  if (!tokenString) {
+    return NextResponse.json(
+      { success: false, message: "Token is required" },
+      { status: 401 },
+    );
+  }
+  const checkResult = await CheckUserAccess(
+    tokenString,
+    access_levels.ChangeGroupMembers,
+  );
+  const isValidToken: isValidTokenTypes = {
+    success: checkResult.success,
+    access: checkResult.access ?? "",
+    userId: checkResult.userId,
+  };
 
   if (!isValidToken.success) {
-    return Response.json(
-      { success: isValidToken.success, message: isValidToken.message },
-      { status: isValidToken.status },
+    return NextResponse.json(
+      { success: isValidToken.success, message: "Unauthorized" },
+      { status: 403 },
     );
   }
 
   //   --------- connect to database -----------
   await connectDB();
   // ------------ Check if the credit user group exists -----------
-  const creditUserGroup =
-    await CreditUserGroupModel.findOne({ ID: creditUserGroupID });
+  const creditUserGroup = await CreditUserGroupModel.findOne({
+    ID: creditUserGroupID,
+  });
   if (!creditUserGroup) {
     return NextResponse.json(
       {
